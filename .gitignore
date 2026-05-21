@@ -1,0 +1,48 @@
+# =========================
+# Node / React / Vite
+# =========================
+node_modules/
+frontend/node_modules/
+
+dist/
+frontend/dist/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# Variáveis de ambiente
+# =========================
+.env
+.env.local
+.env.development
+.env.production
+frontend/.env
+frontend/.env.local
+backend/.env
+
+# =========================
+# Go
+# =========================
+*.exe
+*.test
+*.out
+
+# =========================
+# SQLite local
+# =========================
+database.db
+backend/database.db
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# =========================
+# VS Code / Sistema
+# =========================
+.vscode/
+.DS_Store
+Thumbs.db
