@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { playTransitionSound, playDeleteSound } from "../utils/sounds";
 import ChampionForm from "../components/ChampionForm";
 import ChampionCard from "../components/ChampionCard";
 
@@ -30,6 +30,7 @@ function Champions() {
   const [ordem, setOrdem] = useState("recentes");
 
   const [tela, setTela] = useState("lista");
+
   const [championsRiot, setChampionsRiot] = useState([]);
   const [championSelecionado, setChampionSelecionado] = useState(null);
 
@@ -43,6 +44,9 @@ function Champions() {
 
   const [carregandoInicial, setCarregandoInicial] = useState(true);
   const [erro, setErro] = useState("");
+
+  const [popupExcluir, setPopupExcluir] = useState(false);
+  const [championParaExcluir, setChampionParaExcluir] = useState(null);
 
   async function carregarChampions(
     nomeBusca = busca,
@@ -78,12 +82,12 @@ function Champions() {
     }
 
     const championEscolhido =
-  championSelecionado || encontrarChampionPorNome(nome, championsRiot);
+      championSelecionado || encontrarChampionPorNome(nome, championsRiot);
 
     if (!championEscolhido) {
       alert("Selecione um campeão válido da lista de sugestões.");
       return;
-}
+    }
 
     const maestriaNumero = converterMaestriaParaNumero(maestria);
 
@@ -131,6 +135,13 @@ function Champions() {
       return;
     }
 
+    const championEditado = encontrarChampionPorNome(editNome, championsRiot);
+
+    if (!championEditado) {
+      alert("Selecione um campeão válido da lista de sugestões.");
+      return;
+    }
+
     const editMaestriaNumero = converterMaestriaParaNumero(editMaestria);
 
     if (!editMaestriaNumero || editMaestriaNumero <= 0) {
@@ -139,7 +150,7 @@ function Champions() {
     }
 
     const championAtualizado = {
-      nome: editNome.trim(),
+      nome: championEditado.nome,
       maestria: editMaestriaNumero,
     };
 
@@ -155,15 +166,26 @@ function Champions() {
     }
   }
 
-  async function excluirChampion(id) {
-    const confirmar = confirm("Tem certeza que deseja excluir esse campeão?");
+  function abrirPopupExcluir(champion) {
+    playDeleteSound();
+    setChampionParaExcluir(champion);
+    setPopupExcluir(true);
+  }
 
-    if (!confirmar) {
+  function fecharPopupExcluir() {
+    setChampionParaExcluir(null);
+    setPopupExcluir(false);
+  }
+
+  async function excluirChampion() {
+    if (!championParaExcluir) {
       return;
     }
 
     try {
-      await excluirChampionAPI(id);
+      await excluirChampionAPI(championParaExcluir.id);
+
+      fecharPopupExcluir();
 
       await carregarChampions(busca, ordem, pagina);
     } catch (erro) {
@@ -199,13 +221,13 @@ function Champions() {
   }, [busca, ordem, pagina]);
 
   const sugestoesChampions =
-  nome.trim().length > 0 && !championSelecionado
-    ? championsRiot
-        .filter((champion) =>
-          champion.nome.toLowerCase().includes(nome.toLowerCase())
-        )
-        .slice(0, 8)
-    : [];
+    nome.trim().length > 0 && !championSelecionado
+      ? championsRiot
+          .filter((champion) =>
+            champion.nome.toLowerCase().includes(nome.toLowerCase())
+          )
+          .slice(0, 8)
+      : [];
 
   if (carregandoInicial) {
     return <h1 className="loading">Carregando campeões...</h1>;
@@ -216,29 +238,29 @@ function Champions() {
   }
 
   if (tela === "cadastro") {
-  return (
-    <ChampionForm
-      nome={nome}
-      maestria={maestria}
-      setNome={setNome}
-      setMaestria={setMaestria}
-      onSubmit={cadastrarChampion}
-      sugestoes={sugestoesChampions}
-      onSelecionarSugestao={selecionarSugestao}
-      championSelecionado={championSelecionado}
-      onNomeChange={(valor) => {
-        setNome(valor);
-        setChampionSelecionado(null);
-      }}
-      onVoltar={() => {
-        setTela("lista");
-        setNome("");
-        setMaestria("");
-        setChampionSelecionado(null);
-      }}
-    />
-  );
-}
+    return (
+      <ChampionForm
+        nome={nome}
+        maestria={maestria}
+        setNome={setNome}
+        setMaestria={setMaestria}
+        onSubmit={cadastrarChampion}
+        sugestoes={sugestoesChampions}
+        onSelecionarSugestao={selecionarSugestao}
+        championSelecionado={championSelecionado}
+        onNomeChange={(valor) => {
+          setNome(valor);
+          setChampionSelecionado(null);
+        }}
+        onVoltar={() => {
+          setTela("lista");
+          setNome("");
+          setMaestria("");
+          setChampionSelecionado(null);
+        }}
+      />
+    );
+  }
 
   return (
     <main className="app-container">
@@ -252,7 +274,13 @@ function Champions() {
       <button
         className="primary-button"
         type="button"
-        onClick={() => setTela("cadastro")}
+        onClick={() => {
+          playTransitionSound();
+          setTela("cadastro");
+          setNome("");
+          setMaestria("");
+          setChampionSelecionado(null);
+        }}
       >
         Cadastrar Champ
       </button>
@@ -294,6 +322,7 @@ function Champions() {
           key={champion.id}
           champion={champion}
           championRiot={encontrarChampionPorNome(champion.nome, championsRiot)}
+          championsRiot={championsRiot}
           editandoId={editandoId}
           editNome={editNome}
           editMaestria={editMaestria}
@@ -302,7 +331,7 @@ function Champions() {
           iniciarEdicao={iniciarEdicao}
           cancelarEdicao={cancelarEdicao}
           salvarEdicao={salvarEdicao}
-          excluirChampion={excluirChampion}
+          excluirChampion={abrirPopupExcluir}
         />
       ))}
 
@@ -329,6 +358,43 @@ function Champions() {
           Próxima
         </button>
       </div>
+
+      {popupExcluir && championParaExcluir && (
+        <div className="delete-modal-overlay">
+          <div className="delete-modal">
+            <span className="delete-modal-kicker">Confirmar exclusão</span>
+
+            <h2>Excluir campeão?</h2>
+
+            <p>
+              Você está prestes a excluir{" "}
+              <strong>{championParaExcluir.nome}</strong> da sua lista.
+            </p>
+
+            <p className="delete-modal-warning">
+              Essa ação não poderá ser desfeita.
+            </p>
+
+            <div className="delete-modal-actions">
+              <button
+                type="button"
+                className="card-button"
+                onClick={fecharPopupExcluir}
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                className="card-button danger"
+                onClick={excluirChampion}
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
