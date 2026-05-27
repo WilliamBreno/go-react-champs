@@ -41,19 +41,14 @@ func ListarChampions(w http.ResponseWriter, r *http.Request) {
 	switch ordem {
 	case "maior_maestria":
 		orderBy = "maestria DESC"
-
 	case "menor_maestria":
 		orderBy = "maestria ASC"
-
 	case "nome_az":
 		orderBy = "nome ASC"
-
 	case "nome_za":
 		orderBy = "nome DESC"
-
 	case "recentes":
 		orderBy = "id DESC"
-
 	default:
 		orderBy = "id DESC"
 	}
@@ -63,7 +58,7 @@ func ListarChampions(w http.ResponseWriter, r *http.Request) {
 
 	if strings.TrimSpace(nomeBusca) != "" {
 		err = database.DB.QueryRow(
-			"SELECT COUNT(*) FROM champions WHERE nome LIKE ?",
+			"SELECT COUNT(*) FROM champions WHERE nome ILIKE $1",
 			"%"+nomeBusca+"%",
 		).Scan(&total)
 
@@ -72,7 +67,7 @@ func ListarChampions(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		query := "SELECT id, nome, maestria FROM champions WHERE nome LIKE ? ORDER BY " + orderBy + " LIMIT ? OFFSET ?"
+		query := "SELECT id, nome, maestria FROM champions WHERE nome ILIKE $1 ORDER BY " + orderBy + " LIMIT $2 OFFSET $3"
 
 		rows, err = database.DB.Query(
 			query,
@@ -90,7 +85,7 @@ func ListarChampions(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		query := "SELECT id, nome, maestria FROM champions ORDER BY " + orderBy + " LIMIT ? OFFSET ?"
+		query := "SELECT id, nome, maestria FROM champions ORDER BY " + orderBy + " LIMIT $1 OFFSET $2"
 
 		rows, err = database.DB.Query(
 			query,
@@ -125,11 +120,11 @@ func ListarChampions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resposta := models.ChampionResponse{
-		Dados:         champions,
-		Pagina:        page,
-		Limite:        limit,
-		Total:         total,
-		TotalPaginas:  totalPaginas,
+		Dados:        champions,
+		Pagina:       page,
+		Limite:       limit,
+		Total:        total,
+		TotalPaginas: totalPaginas,
 	}
 
 	json.NewEncoder(w).Encode(resposta)
@@ -154,24 +149,16 @@ func CadastrarChampion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := database.DB.Exec(
-		"INSERT INTO champions (nome, maestria) VALUES (?, ?)",
+	err = database.DB.QueryRow(
+		"INSERT INTO champions (nome, maestria) VALUES ($1, $2) RETURNING id",
 		novoChampion.Nome,
 		novoChampion.Maestria,
-	)
+	).Scan(&novoChampion.ID)
 
 	if err != nil {
 		http.Error(w, "Erro ao cadastrar campeão", http.StatusInternalServerError)
 		return
 	}
-
-	id, err := result.LastInsertId()
-	if err != nil {
-		http.Error(w, "Erro ao obter ID", http.StatusInternalServerError)
-		return
-	}
-
-	novoChampion.ID = int(id)
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(novoChampion)
@@ -205,7 +192,7 @@ func EditarChampion(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result, err := database.DB.Exec(
-		"UPDATE champions SET nome = ?, maestria = ? WHERE id = ?",
+		"UPDATE champions SET nome = $1, maestria = $2 WHERE id = $3",
 		championAtualizado.Nome,
 		championAtualizado.Maestria,
 		id,
@@ -242,7 +229,7 @@ func ExcluirChampion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := database.DB.Exec("DELETE FROM champions WHERE id = ?", id)
+	result, err := database.DB.Exec("DELETE FROM champions WHERE id = $1", id)
 	if err != nil {
 		http.Error(w, "Erro ao excluir campeão", http.StatusInternalServerError)
 		return

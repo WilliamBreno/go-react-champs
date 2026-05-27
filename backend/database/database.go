@@ -3,8 +3,9 @@ package database
 import (
 	"database/sql"
 	"log"
+	"os"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 var DB *sql.DB
@@ -12,16 +13,27 @@ var DB *sql.DB
 func InitDatabase() {
 	var err error
 
-	DB, err = sql.Open("sqlite", "database.db")
+	databaseURL := os.Getenv("DATABASE_URL")
+
+	if databaseURL == "" {
+		log.Fatal("DATABASE_URL não encontrada nas variáveis de ambiente")
+	}
+
+	DB, err = sql.Open("pgx", databaseURL)
 	if err != nil {
-		log.Fatal("Erro ao conectar no banco:", err)
+		log.Fatal("Erro ao conectar no PostgreSQL:", err)
+	}
+
+	err = DB.Ping()
+	if err != nil {
+		log.Fatal("Erro ao testar conexão com PostgreSQL:", err)
 	}
 
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS champions (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		id SERIAL PRIMARY KEY,
 		nome TEXT NOT NULL,
-		maestria REAL NOT NULL
+		maestria DOUBLE PRECISION NOT NULL
 	);`
 
 	_, err = DB.Exec(createTableSQL)
@@ -29,5 +41,5 @@ func InitDatabase() {
 		log.Fatal("Erro ao criar tabela:", err)
 	}
 
-	log.Println("Banco de dados conectado com sucesso!")
+	log.Println("PostgreSQL conectado com sucesso!")
 }
