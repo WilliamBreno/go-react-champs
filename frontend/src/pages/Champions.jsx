@@ -31,6 +31,7 @@ function Champions() {
 
   const [tela, setTela] = useState("lista");
   const [championsRiot, setChampionsRiot] = useState([]);
+  const [championSelecionado, setChampionSelecionado] = useState(null);
 
   const [editandoId, setEditandoId] = useState(null);
   const [editNome, setEditNome] = useState("");
@@ -76,12 +77,13 @@ function Champions() {
       return;
     }
 
-    const championSelecionado = encontrarChampionPorNome(nome, championsRiot);
+    const championEscolhido =
+  championSelecionado || encontrarChampionPorNome(nome, championsRiot);
 
-    if (!championSelecionado) {
+    if (!championEscolhido) {
       alert("Selecione um campeão válido da lista de sugestões.");
       return;
-    }
+}
 
     const maestriaNumero = converterMaestriaParaNumero(maestria);
 
@@ -91,7 +93,7 @@ function Champions() {
     }
 
     const novoChampion = {
-      nome: championSelecionado.nome,
+      nome: championEscolhido.nome,
       maestria: maestriaNumero,
     };
 
@@ -100,6 +102,7 @@ function Champions() {
 
       setNome("");
       setMaestria("");
+      setChampionSelecionado(null);
       setTela("lista");
       setPagina(1);
 
@@ -171,6 +174,7 @@ function Champions() {
 
   function selecionarSugestao(champion) {
     setNome(champion.nome);
+    setChampionSelecionado(champion);
   }
 
   useEffect(() => {
@@ -195,13 +199,13 @@ function Champions() {
   }, [busca, ordem, pagina]);
 
   const sugestoesChampions =
-    nome.trim().length > 0
-      ? championsRiot
-          .filter((champion) =>
-            champion.nome.toLowerCase().includes(nome.toLowerCase())
-          )
-          .slice(0, 8)
-      : [];
+  nome.trim().length > 0 && !championSelecionado
+    ? championsRiot
+        .filter((champion) =>
+          champion.nome.toLowerCase().includes(nome.toLowerCase())
+        )
+        .slice(0, 8)
+    : [];
 
   if (carregandoInicial) {
     return <h1 className="loading">Carregando campeões...</h1>;
@@ -212,23 +216,29 @@ function Champions() {
   }
 
   if (tela === "cadastro") {
-    return (
-      <ChampionForm
-        nome={nome}
-        maestria={maestria}
-        setNome={setNome}
-        setMaestria={setMaestria}
-        onSubmit={cadastrarChampion}
-        sugestoes={sugestoesChampions}
-        onSelecionarSugestao={selecionarSugestao}
-        onVoltar={() => {
-          setTela("lista");
-          setNome("");
-          setMaestria("");
-        }}
-      />
-    );
-  }
+  return (
+    <ChampionForm
+      nome={nome}
+      maestria={maestria}
+      setNome={setNome}
+      setMaestria={setMaestria}
+      onSubmit={cadastrarChampion}
+      sugestoes={sugestoesChampions}
+      onSelecionarSugestao={selecionarSugestao}
+      championSelecionado={championSelecionado}
+      onNomeChange={(valor) => {
+        setNome(valor);
+        setChampionSelecionado(null);
+      }}
+      onVoltar={() => {
+        setTela("lista");
+        setNome("");
+        setMaestria("");
+        setChampionSelecionado(null);
+      }}
+    />
+  );
+}
 
   return (
     <main className="app-container">

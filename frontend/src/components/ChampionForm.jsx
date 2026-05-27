@@ -9,6 +9,8 @@ function ChampionForm({
   sugestoes = [],
   onSelecionarSugestao,
   onVoltar,
+  championSelecionado,
+  onNomeChange,
 }) {
   return (
     <main className="app-container">
@@ -31,7 +33,7 @@ function ChampionForm({
             type="text"
             placeholder="Nome do campeão"
             value={nome}
-            onChange={(event) => setNome(event.target.value)}
+            onChange={(event) => onNomeChange(event.target.value)}
             autoComplete="off"
           />
 
@@ -55,6 +57,20 @@ function ChampionForm({
             </div>
           )}
         </div>
+
+        {championSelecionado && (
+          <div className="selected-champion-preview">
+            <img
+              src={championSelecionado.imagem}
+              alt={championSelecionado.nome}
+            />
+
+            <div>
+              <strong>{championSelecionado.nome}</strong>
+              <small>{championSelecionado.titulo}</small>
+            </div>
+          </div>
+        )}
 
         <input
           className="input-field"
