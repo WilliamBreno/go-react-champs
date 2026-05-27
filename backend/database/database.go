@@ -33,7 +33,7 @@ func InitDatabase() {
 	CREATE TABLE IF NOT EXISTS champions (
 		id SERIAL PRIMARY KEY,
 		nome TEXT NOT NULL,
-		maestria DOUBLE PRECISION NOT NULL
+		maestria BIGINT NOT NULL
 	);`
 
 	_, err = DB.Exec(createTableSQL)

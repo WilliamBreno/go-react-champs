@@ -3,7 +3,7 @@ package models
 type Champion struct {
 	ID       int     `json:"id"`
 	Nome     string  `json:"nome"`
-	Maestria float64 `json:"maestria"`
+	Maestria int64 `json:"maestria"`
 }
 
 type ChampionResponse struct {
