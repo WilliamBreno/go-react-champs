@@ -107,7 +107,7 @@ func ListarChampions(w http.ResponseWriter, r *http.Request) {
 
 		err := rows.Scan(&champion.ID, &champion.Nome, &champion.Maestria)
 		if err != nil {
-			http.Error(w, "Erro ao ler campeão", http.StatusInternalServerError)
+			http.Error(w, "Erro ao ler campeão" +err.Error(), http.StatusInternalServerError)
 			return
 		}
 

@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+const API_URL = (
+  import.meta.env.VITE_API_URL || "http://localhost:8080"
+).replace(/\/$/, "");
 
 export async function listarChampions(
   nome = "",
@@ -22,7 +24,8 @@ export async function listarChampions(
   const resposta = await fetch(`${API_URL}/champions?${params.toString()}`);
 
   if (!resposta.ok) {
-    throw new Error("Erro ao buscar campeões");
+    const mensagem = await resposta.text();
+    throw new Error(mensagem || "Erro ao buscar campeões");
   }
 
   return resposta.json();
