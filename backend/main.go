@@ -24,7 +24,8 @@ func main() {
 
 	http.HandleFunc("/auth/register", handlers.RegisterHandler)
 	http.HandleFunc("/auth/login", handlers.LoginHandler)
-
+	//http.HandleFunc("/riot/link", handlers.AuthMiddleware(handlers.RiotLinkHandler))
+	http.HandleFunc("/riot/profile", handlers.AuthMiddleware(handlers.RiotProfileHandler))
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
