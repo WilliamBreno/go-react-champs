@@ -8,7 +8,9 @@ type User struct {
 }
 
 type RegisterRequest struct {
-	Name     string `json:"name"`
+	GameName string `json:"gameName"`
+	TagLine  string `json:"tagLine"`
+	Region   string `json:"region"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }

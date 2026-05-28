@@ -1115,3 +1115,17 @@ button {
     margin-top: 8px;
   }
 }
+.input-help {
+  margin: 8px 0 18px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.input-help strong {
+  color: var(--gold-light);
+}
+
+.auth-card .select-field {
+  margin-bottom: 16px;
+}
