@@ -42,4 +42,19 @@ func InitDatabase() {
 	}
 
 	log.Println("PostgreSQL conectado com sucesso!")
+
+	createUsersTableSQL := `
+	CREATE TABLE IF NOT EXISTS users (
+		id SERIAL PRIMARY KEY,
+		name TEXT NOT NULL,
+		email TEXT NOT NULL UNIQUE,
+		password_hash TEXT NOT NULL,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		last_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);`
+
+	_, err = DB.Exec(createUsersTableSQL)
+	if err != nil {
+		log.Fatal("Erro ao criar tabela users:", err)
+	}
 }

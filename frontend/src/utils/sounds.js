@@ -2,7 +2,7 @@ const hoverAudio = new Audio("/sounds/hover.mp3");
 const transitionAudio = new Audio("/sounds/transition.mp3");
 const deleteAudio = new Audio("/sounds/delete.mp3");
 
-hoverAudio.volume = 0.25;
+hoverAudio.volume = 0.35;
 transitionAudio.volume = 0.55;
 deleteAudio.volume = 0.35;
 

@@ -22,6 +22,9 @@ func main() {
 	http.HandleFunc("/champions", handlers.ChampionsHandler)
 	http.HandleFunc("/champions/", handlers.ChampionByIDHandler)
 
+	http.HandleFunc("/auth/register", handlers.RegisterHandler)
+	http.HandleFunc("/auth/login", handlers.LoginHandler)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
