@@ -1,9 +1,122 @@
 import { useEffect, useState } from "react";
+
 import { useAuth } from "../context/AuthContext";
 import { buscarPerfilRiot } from "../services/riotApi";
 
+function RankedCard({ rank, queueType }) {
+  function formatarNomeFila(queueType) {
+    if (queueType === "RANKED_SOLO_5x5") {
+      return "Solo/Duo";
+    }
+
+    if (queueType === "RANKED_FLEX_SR") {
+      return "Flex";
+    }
+
+    return "Ranqueada";
+  }
+
+  function getRankIcon(rank) {
+    if (!rank || !rank.tier) {
+      return "/ranks/unranked.png";
+    }
+
+    return `/ranks/${rank.tier.toLowerCase()}.png`;
+  }
+
+  function formatarRank(rank) {
+    if (!rank) {
+      return "Sem rank";
+    }
+
+    return `${rank.tier} ${rank.rank}`;
+  }
+
+  return (
+    <article className="ranked-card">
+      <img
+        className="ranked-icon"
+        src={getRankIcon(rank)}
+        alt={rank ? `Ícone ${rank.tier}` : "Sem rank"}
+      />
+
+      <div className="ranked-info">
+        <span>{formatarNomeFila(queueType)}</span>
+
+        <h3>{formatarRank(rank)}</h3>
+
+        {rank ? (
+          <>
+            <p>{rank.leaguePoints} PDL</p>
+
+            <small>
+              {rank.wins}V / {rank.losses}D
+            </small>
+          </>
+        ) : (
+          <>
+            <p>Sem partidas ranqueadas</p>
+            <small>Nenhum elo encontrado</small>
+          </>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function StatusCard({ liveStatus }) {
+  const estaEmPartida = liveStatus?.isInGame;
+
+  function formatarFila(queueId) {
+    const filas = {
+      420: "Ranqueada Solo/Duo",
+      440: "Ranqueada Flex",
+      400: "Normal Draft",
+      430: "Normal Blind",
+      450: "ARAM",
+      700: "Clash",
+      900: "URF",
+      1700: "Arena",
+    };
+
+    return filas[queueId] || `Fila ${queueId}`;
+  }
+
+  return (
+    <section className="status-section">
+      <h2 className="section-title">Status</h2>
+
+      <div className="status-card">
+        <div className={estaEmPartida ? "status-dot online" : "status-dot"} />
+
+        <div className="status-info">
+          <span>Status no LoL</span>
+
+          <h3>{estaEmPartida ? "Em partida agora" : "Fora de partida"}</h3>
+
+          {estaEmPartida ? (
+            <>
+              <p>{formatarFila(liveStatus.gameQueueConfigId)}</p>
+
+              <small>
+                Modo: {liveStatus.gameMode || "Indefinido"} · Tipo:{" "}
+                {liveStatus.gameType || "Indefinido"}
+              </small>
+            </>
+          ) : (
+            <>
+              <p>Nenhuma partida ativa encontrada.</p>
+              <small>O jogador pode estar offline ou fora de jogo.</small>
+            </>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Profile() {
-  const { token, usuario } = useAuth();
+  const { token } = useAuth();
 
   const [perfil, setPerfil] = useState(null);
   const [carregando, setCarregando] = useState(true);
@@ -19,7 +132,7 @@ function Profile() {
 
         setPerfil(dados);
       } catch (erro) {
-        setErro(erro.message);
+        setErro(erro.message || "Erro ao carregar perfil Riot.");
       } finally {
         setCarregando(false);
       }
@@ -43,6 +156,14 @@ function Profile() {
   }
 
   const profileIconUrl = `https://ddragon.leagueoflegends.com/cdn/14.24.1/img/profileicon/${perfil.profileIconId}.png`;
+
+  const soloDuo = perfil.ranked?.find(
+    (rank) => rank.queueType === "RANKED_SOLO_5x5"
+  );
+
+  const flex = perfil.ranked?.find(
+    (rank) => rank.queueType === "RANKED_FLEX_SR"
+  );
 
   return (
     <main className="app-container">
@@ -72,7 +193,7 @@ function Profile() {
           <div className="profile-grid">
             <div>
               <strong>Região</strong>
-              <p>{perfil.region.toUpperCase()}</p>
+              <p>{perfil.region?.toUpperCase()}</p>
             </div>
 
             <div>
@@ -81,10 +202,21 @@ function Profile() {
             </div>
 
             <div>
-              <strong>Summoner ID</strong>
-              <p>{perfil.summonerId}</p>
+              <strong>Conta vinculada</strong>
+              <p>Ativa</p>
             </div>
           </div>
+        </div>
+      </section>
+
+      <StatusCard liveStatus={perfil.liveStatus} />
+
+      <section className="ranked-section">
+        <h2 className="section-title">Ranqueadas</h2>
+
+        <div className="ranked-grid">
+          <RankedCard rank={soloDuo} queueType="RANKED_SOLO_5x5" />
+          <RankedCard rank={flex} queueType="RANKED_FLEX_SR" />
         </div>
       </section>
     </main>

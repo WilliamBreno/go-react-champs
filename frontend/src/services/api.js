@@ -2,7 +2,24 @@ const API_URL = (
   import.meta.env.VITE_API_URL || "http://localhost:8080"
 ).replace(/\/$/, "");
 
+async function tratarResposta(resposta, mensagemPadrao) {
+  if (!resposta.ok) {
+    const mensagem = await resposta.text();
+    throw new Error(mensagem || mensagemPadrao);
+  }
+
+  return resposta.json();
+}
+
+function criarHeaders(token) {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
+
 export async function listarChampions(
+  token,
   nome = "",
   ordem = "recentes",
   page = 1,
@@ -21,54 +38,48 @@ export async function listarChampions(
   params.append("page", page);
   params.append("limit", limit);
 
-  const resposta = await fetch(`${API_URL}/champions?${params.toString()}`);
+  const resposta = await fetch(`${API_URL}/champions?${params.toString()}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return tratarResposta(resposta, "Erro ao buscar campeões");
+}
+
+export async function cadastrarChampion(token, champion) {
+  const resposta = await fetch(`${API_URL}/champions`, {
+    method: "POST",
+    headers: criarHeaders(token),
+    body: JSON.stringify(champion),
+  });
+
+  return tratarResposta(resposta, "Erro ao cadastrar campeão");
+}
+
+export async function editarChampion(token, id, champion) {
+  const resposta = await fetch(`${API_URL}/champions/${id}`, {
+    method: "PUT",
+    headers: criarHeaders(token),
+    body: JSON.stringify(champion),
+  });
+
+  return tratarResposta(resposta, "Erro ao editar campeão");
+}
+
+export async function excluirChampion(token, id) {
+  const resposta = await fetch(`${API_URL}/champions/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
   if (!resposta.ok) {
     const mensagem = await resposta.text();
-    throw new Error(mensagem || "Erro ao buscar campeões");
+    throw new Error(mensagem || "Erro ao excluir campeão");
   }
 
-  return resposta.json();
-}
-
-export async function cadastrarChampion(champion) {
-  const resposta = await fetch(`${API_URL}/champions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(champion),
-  });
-
-  if (!resposta.ok) {
-    throw new Error("Erro ao cadastrar campeão");
-  }
-
-  return resposta.json();
-}
-
-export async function editarChampion(id, champion) {
-  const resposta = await fetch(`${API_URL}/champions/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(champion),
-  });
-
-  if (!resposta.ok) {
-    throw new Error("Erro ao editar campeão");
-  }
-
-  return resposta.json();
-}
-
-export async function excluirChampion(id) {
-  const resposta = await fetch(`${API_URL}/champions/${id}`, {
-    method: "DELETE",
-  });
-
-  if (!resposta.ok) {
-    throw new Error("Erro ao excluir campeão");
-  }
+  return true;
 }

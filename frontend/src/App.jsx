@@ -13,6 +13,11 @@ import Champions from "./pages/Champions";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import Dashboard from "./pages/Dashboard";
+
+import Friends from "./pages/Friends";
+
+import ChatSidebar from "./components/ChatSidebar";
 
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { useGlobalButtonHoverSound } from "./hooks/useGlobalButtonHoverSound";
@@ -49,14 +54,27 @@ function AppContent() {
           Início
         </NavLink>
 
-        <NavLink
-          to="/champions"
-          className={({ isActive }) =>
-            isActive ? "nav-link nav-link-active" : "nav-link"
-          }
-        >
-          Champions
-        </NavLink>
+        {estaLogado && (
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) =>
+              isActive ? "nav-link nav-link-active" : "nav-link"
+            }
+          >
+            Dashboard
+          </NavLink>
+        )}
+
+        {estaLogado && (
+          <NavLink
+            to="/champions"
+            className={({ isActive }) =>
+              isActive ? "nav-link nav-link-active" : "nav-link"
+            }
+          >
+            Champions
+          </NavLink>
+        )}
 
         {estaLogado && (
           <NavLink
@@ -66,6 +84,17 @@ function AppContent() {
             }
           >
             Perfil
+          </NavLink>
+        )}
+
+        {estaLogado && (
+          <NavLink
+            to="/friends"
+            className={({ isActive }) =>
+              isActive ? "nav-link nav-link-active" : "nav-link"
+            }
+          >
+            Amigos
           </NavLink>
         )}
 
@@ -101,9 +130,20 @@ function AppContent() {
           </div>
         )}
       </nav>
+      
+      {estaLogado && <ChatSidebar />}  
 
       <Routes>
         <Route path="/" element={<Home />} />
+
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
 
         <Route
           path="/champions"
@@ -122,18 +162,25 @@ function AppContent() {
             </PrivateRoute>
           }
         />
-
+        <Route
+          path="/friends"
+          element={
+            <PrivateRoute>
+              <Friends />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/login"
           element={
-            estaLogado ? <Navigate to="/champions" replace /> : <Login />
+            estaLogado ? <Navigate to="/dashboard" replace /> : <Login />
           }
         />
 
         <Route
           path="/register"
           element={
-            estaLogado ? <Navigate to="/champions" replace /> : <Register />
+            estaLogado ? <Navigate to="/dashboard" replace /> : <Register />
           }
         />
 

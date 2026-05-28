@@ -32,7 +32,7 @@ function Login() {
       });
 
       entrar(resposta);
-      navigate("/champions");
+      navigate("/dashboard");
     } catch (erro) {
       setErro(erro.message);
     } finally {

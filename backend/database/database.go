@@ -33,7 +33,8 @@ func InitDatabase() {
 	CREATE TABLE IF NOT EXISTS champions (
 		id SERIAL PRIMARY KEY,
 		nome TEXT NOT NULL,
-		maestria BIGINT NOT NULL
+		maestria BIGINT NOT NULL,
+		user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
 	);`
 
 	_, err = DB.Exec(createTableSQL)
@@ -76,5 +77,35 @@ func InitDatabase() {
 	_, err = DB.Exec(createRiotAccountsTableSQL)
 	if err != nil {
 		log.Fatal("Erro ao criar tabela riot_accounts:", err)
+	}
+	createFriendshipsTableSQL := `
+	CREATE TABLE IF NOT EXISTS friendships (
+		id SERIAL PRIMARY KEY,
+		requester_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		status TEXT NOT NULL DEFAULT 'pending',
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		CONSTRAINT no_self_friendship CHECK (requester_id <> receiver_id),
+		CONSTRAINT unique_friendship_pair UNIQUE (requester_id, receiver_id)
+	);`
+
+	_, err = DB.Exec(createFriendshipsTableSQL)
+	if err != nil {
+		log.Fatal("Erro ao criar tabela friendships:", err)
+	}
+	createMessagesTableSQL := `
+	CREATE TABLE IF NOT EXISTS messages (
+		id SERIAL PRIMARY KEY,
+		friendship_id INTEGER NOT NULL REFERENCES friendships(id) ON DELETE CASCADE,
+		sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		content TEXT NOT NULL,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);`
+
+	_, err = DB.Exec(createMessagesTableSQL)
+	if err != nil {
+		log.Fatal("Erro ao criar tabela messages:", err)
 	}
 }

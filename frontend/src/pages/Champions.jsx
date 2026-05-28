@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { playTransitionSound, playDeleteSound } from "../utils/sounds";
+
 import ChampionForm from "../components/ChampionForm";
 import ChampionCard from "../components/ChampionCard";
+
+import { useAuth } from "../context/AuthContext";
 
 import {
   converterMaestriaParaNumero,
@@ -21,6 +23,8 @@ import {
 } from "../services/api";
 
 function Champions() {
+  const { token } = useAuth();
+
   const [champions, setChampions] = useState([]);
 
   const [nome, setNome] = useState("");
@@ -53,8 +57,13 @@ function Champions() {
     ordemBusca = ordem,
     paginaBusca = pagina
   ) {
+    if (!token) {
+      return;
+    }
+
     try {
       const resposta = await listarChampions(
+        token,
         nomeBusca,
         ordemBusca,
         paginaBusca,
@@ -67,7 +76,7 @@ function Champions() {
       setErro("");
     } catch (erro) {
       console.error("Erro ao carregar campeões:", erro);
-      setErro("Não foi possível carregar os campeões.");
+      setErro(`Não foi possível carregar os campeões. ${erro.message}`);
     } finally {
       setCarregandoInicial(false);
     }
@@ -75,6 +84,11 @@ function Champions() {
 
   async function cadastrarChampion(event) {
     event.preventDefault();
+
+    if (!token) {
+      alert("Usuário não autenticado.");
+      return;
+    }
 
     if (!nome.trim()) {
       alert("Digite o nome do campeão.");
@@ -102,7 +116,7 @@ function Champions() {
     };
 
     try {
-      await cadastrarChampionAPI(novoChampion);
+      await cadastrarChampionAPI(token, novoChampion);
 
       setNome("");
       setMaestria("");
@@ -113,7 +127,7 @@ function Champions() {
       await carregarChampions(busca, ordem, 1);
     } catch (erro) {
       console.error("Erro ao cadastrar campeão:", erro);
-      alert("Erro ao cadastrar campeão.");
+      alert(`Erro ao cadastrar campeão. ${erro.message}`);
     }
   }
 
@@ -130,6 +144,11 @@ function Champions() {
   }
 
   async function salvarEdicao(id) {
+    if (!token) {
+      alert("Usuário não autenticado.");
+      return;
+    }
+
     if (!editNome.trim()) {
       alert("Digite o nome do campeão.");
       return;
@@ -155,19 +174,18 @@ function Champions() {
     };
 
     try {
-      await editarChampionAPI(id, championAtualizado);
+      await editarChampionAPI(token, id, championAtualizado);
 
       cancelarEdicao();
 
       await carregarChampions(busca, ordem, pagina);
     } catch (erro) {
       console.error("Erro ao editar campeão:", erro);
-      alert("Erro ao editar campeão.");
+      alert(`Erro ao editar campeão. ${erro.message}`);
     }
   }
 
   function abrirPopupExcluir(champion) {
-    playDeleteSound();
     setChampionParaExcluir(champion);
     setPopupExcluir(true);
   }
@@ -178,19 +196,24 @@ function Champions() {
   }
 
   async function excluirChampion() {
+    if (!token) {
+      alert("Usuário não autenticado.");
+      return;
+    }
+
     if (!championParaExcluir) {
       return;
     }
 
     try {
-      await excluirChampionAPI(championParaExcluir.id);
+      await excluirChampionAPI(token, championParaExcluir.id);
 
       fecharPopupExcluir();
 
       await carregarChampions(busca, ordem, pagina);
     } catch (erro) {
       console.error("Erro ao excluir campeão:", erro);
-      alert("Erro ao excluir campeão.");
+      alert(`Erro ao excluir campeão. ${erro.message}`);
     }
   }
 
@@ -213,12 +236,16 @@ function Champions() {
   }, []);
 
   useEffect(() => {
+    if (!token) {
+      return;
+    }
+
     const timer = setTimeout(() => {
       carregarChampions(busca, ordem, pagina);
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [busca, ordem, pagina]);
+  }, [token, busca, ordem, pagina]);
 
   const sugestoesChampions =
     nome.trim().length > 0 && !championSelecionado
@@ -275,7 +302,6 @@ function Champions() {
         className="primary-button"
         type="button"
         onClick={() => {
-          playTransitionSound();
           setTela("cadastro");
           setNome("");
           setMaestria("");

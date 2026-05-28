@@ -18,9 +18,21 @@ func main() {
 	database.InitDatabase()
 	defer database.DB.Close()
 
+	http.HandleFunc("/users/search", handlers.AuthMiddleware(handlers.SearchUsersHandler))
+
+	http.HandleFunc("/friends", handlers.AuthMiddleware(handlers.ListFriendsHandler))
+	http.HandleFunc("/friends/", handlers.AuthMiddleware(handlers.RemoveFriendHandler))
+	http.HandleFunc("/friends/request", handlers.AuthMiddleware(handlers.SendFriendRequestHandler))
+	http.HandleFunc("/friends/requests", handlers.AuthMiddleware(handlers.ListFriendRequestsHandler))
+	http.HandleFunc("/friends/accept", handlers.AuthMiddleware(handlers.AcceptFriendRequestHandler))
+	http.HandleFunc("/friends/reject", handlers.AuthMiddleware(handlers.RejectFriendRequestHandler))
+
+	http.HandleFunc("/chat/messages", handlers.AuthMiddleware(handlers.SendMessageHandler))
+	http.HandleFunc("/chat/messages/", handlers.AuthMiddleware(handlers.ListMessagesHandler))
+
 	http.HandleFunc("/", homeHandler)
-	http.HandleFunc("/champions", handlers.ChampionsHandler)
-	http.HandleFunc("/champions/", handlers.ChampionByIDHandler)
+	http.HandleFunc("/champions", handlers.AuthMiddleware(handlers.ChampionsHandler))
+	http.HandleFunc("/champions/", handlers.AuthMiddleware(handlers.ChampionByIDHandler))
 
 	http.HandleFunc("/auth/register", handlers.RegisterHandler)
 	http.HandleFunc("/auth/login", handlers.LoginHandler)
