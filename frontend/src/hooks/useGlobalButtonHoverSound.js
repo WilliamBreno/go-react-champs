@@ -3,32 +3,32 @@ import { playHoverSound } from "../utils/sounds";
 
 export function useGlobalButtonHoverSound() {
   useEffect(() => {
-    let ultimoElemento = null;
+    let ultimoBotao = null;
 
     function tocarHover(event) {
-      const elemento = event.target.closest("button, .nav-link");
+      const botao = event.target.closest("button");
 
-      if (!elemento) {
+      if (!botao) {
         return;
       }
 
-      if (elemento.disabled) {
+      if (botao.disabled) {
         return;
       }
 
-      if (elemento === ultimoElemento) {
+      if (botao === ultimoBotao) {
         return;
       }
 
-      ultimoElemento = elemento;
+      ultimoBotao = botao;
       playHoverSound();
     }
 
     function resetarHover(event) {
-      const elemento = event.target.closest("button, .nav-link");
+      const botao = event.target.closest("button");
 
-      if (elemento === ultimoElemento) {
-        ultimoElemento = null;
+      if (botao === ultimoBotao) {
+        ultimoBotao = null;
       }
     }
 

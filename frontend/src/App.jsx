@@ -14,6 +14,7 @@ function App() {
       <nav className="navbar">
         <NavLink
           to="/"
+          end
           className={({ isActive }) =>
             isActive ? "nav-link nav-link-active" : "nav-link"
           }
