@@ -1,5 +1,9 @@
 const DDRAGON_BASE_URL = "https://ddragon.leagueoflegends.com";
 
+const API_URL = (
+  import.meta.env.VITE_API_URL || "http://localhost:8080"
+).replace(/\/$/, "");
+
 let cacheChampions = null;
 
 export async function buscarVersaoAtualDDragon() {
@@ -48,4 +52,20 @@ export function encontrarChampionPorNome(nome, championsRiot) {
   return championsRiot.find(
     (champion) => champion.nome.toLowerCase() === nome.toLowerCase()
   );
+}
+
+export async function buscarPerfilRiot(token) {
+  const resposta = await fetch(`${API_URL}/riot/profile`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!resposta.ok) {
+    const mensagem = await resposta.text();
+    throw new Error(mensagem || "Erro ao buscar perfil Riot");
+  }
+
+  return resposta.json();
 }

@@ -1,10 +1,18 @@
-import { BrowserRouter, Routes, Route, NavLink, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  NavLink,
+  Navigate,
+} from "react-router-dom";
+
 import "./App.css";
 
 import Home from "./pages/Home";
 import Champions from "./pages/Champions";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Profile from "./pages/Profile";
 
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { useGlobalButtonHoverSound } from "./hooks/useGlobalButtonHoverSound";
@@ -49,6 +57,17 @@ function AppContent() {
         >
           Champions
         </NavLink>
+
+        {estaLogado && (
+          <NavLink
+            to="/perfil"
+            className={({ isActive }) =>
+              isActive ? "nav-link nav-link-active" : "nav-link"
+            }
+          >
+            Perfil
+          </NavLink>
+        )}
 
         {!estaLogado && (
           <>
@@ -95,8 +114,30 @@ function AppContent() {
           }
         />
 
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route
+          path="/perfil"
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/login"
+          element={
+            estaLogado ? <Navigate to="/champions" replace /> : <Login />
+          }
+        />
+
+        <Route
+          path="/register"
+          element={
+            estaLogado ? <Navigate to="/champions" replace /> : <Register />
+          }
+        />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

@@ -25,17 +25,23 @@
 
 body {
   margin: 0;
+  min-height: 100vh;
+  color: var(--text-main);
+  font-family: Arial, Helvetica, sans-serif;
   background:
     radial-gradient(circle at top, rgba(10, 200, 185, 0.12), transparent 35%),
     linear-gradient(180deg, #020409 0%, #05080f 45%, #0a1428 100%);
-  color: var(--text-main);
-  font-family: Arial, Helvetica, sans-serif;
-  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-/* NAVBAR */
+/* =========================
+   NAVBAR
+========================= */
 
 .navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -43,9 +49,6 @@ body {
   padding: 18px 30px;
   background: rgba(5, 8, 15, 0.92);
   border-bottom: 1px solid rgba(200, 155, 60, 0.35);
-  position: sticky;
-  top: 0;
-  z-index: 20;
   backdrop-filter: blur(8px);
 }
 
@@ -73,12 +76,7 @@ body {
   bottom: -10px;
   width: 0;
   height: 3px;
-  background: linear-gradient(
-    90deg,
-    var(--gold),
-    var(--gold-light),
-    var(--blue)
-  );
+  background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--blue));
   transform: translateX(-50%);
   transition: width 0.2s ease;
   box-shadow: 0 0 14px rgba(200, 155, 60, 0.55);
@@ -103,7 +101,34 @@ body {
   text-shadow: 0 0 12px rgba(10, 200, 185, 0.8);
 }
 
-/* CONTAINER */
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--gold-light);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.logout-button {
+  padding: 8px 12px;
+  border: 1px solid rgba(200, 155, 60, 0.45);
+  border-radius: 8px;
+  background: rgba(200, 155, 60, 0.12);
+  color: var(--text-main);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  background: rgba(200, 155, 60, 0.22);
+}
+
+/* =========================
+   CONTAINERS GERAIS
+========================= */
 
 .app-container {
   max-width: 980px;
@@ -130,201 +155,9 @@ body {
   font-size: 16px;
 }
 
-/* BUSCA E FILTROS */
-
-.controls-panel {
-  background: linear-gradient(135deg, rgba(10, 20, 40, 0.95), rgba(17, 24, 39, 0.95));
-  border: 1px solid var(--border-gold);
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
-  border-radius: 4px;
-  padding: 22px;
-  margin-bottom: 28px;
-}
-
-.input-field,
-.select-field {
-  display: block;
-  width: 100%;
-  padding: 14px 15px;
-  margin-bottom: 14px;
-  border: 1px solid rgba(200, 155, 60, 0.38);
-  background: #05080f;
-  color: var(--text-main);
-  outline: none;
-  font-size: 15px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.input-field::placeholder {
-  color: #777266;
-}
-
-.input-field:focus,
-.select-field:focus {
-  border-color: var(--gold-light);
-  box-shadow: 0 0 0 3px rgba(200, 155, 60, 0.12);
-}
-
-.select-field {
-  cursor: pointer;
-  margin-bottom: 0;
-}
-
-/* BOTÕES */
-
-.primary-button,
-.card-button {
-  border: none;
-  cursor: pointer;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  transition: transform 0.15s ease, filter 0.15s ease, background 0.15s ease;
-}
-
-.primary-button {
-  padding: 13px 22px;
-  margin: 0 0 22px;
-  color: #061018;
-  background: linear-gradient(180deg, var(--gold-light), var(--gold));
-  border: 1px solid #f0d78c;
-  box-shadow: 0 8px 22px var(--shadow-gold);
-}
-
-.primary-button:hover,
-.card-button:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.08);
-}
-
-.primary-button:active,
-.card-button:active {
-  transform: translateY(0);
-}
-
-.card-button {
-  padding: 10px 14px;
-  margin-right: 8px;
-  color: white;
-  background: linear-gradient(180deg, var(--blue), var(--blue-dark));
-  border: 1px solid rgba(10, 200, 185, 0.7);
-}
-
-.card-button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.card-button.danger {
-  background: linear-gradient(180deg, var(--danger-hover), var(--danger));
-  border-color: rgba(255, 120, 120, 0.5);
-}
-
-/* FORMULÁRIO */
-
-.form-container {
-  background:
-    linear-gradient(135deg, rgba(17, 24, 39, 0.98), rgba(10, 20, 40, 0.98));
-  border: 1px solid var(--border-gold);
-  border-radius: 4px;
-  padding: 24px;
-  margin-bottom: 30px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
-}
-
-.form-container h2 {
-  margin-top: 0;
-  color: var(--gold-light);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
-
-/* CARDS */
-
-.card {
-  position: relative;
-  overflow: hidden;
-  background:
-    linear-gradient(135deg, rgba(17, 24, 39, 0.96), rgba(10, 20, 40, 0.96));
-  border: 1px solid rgba(200, 155, 60, 0.32);
-  border-radius: 4px;
-  padding: 22px;
-  margin-bottom: 16px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.28);
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 5px;
-  height: 100%;
-  background: linear-gradient(180deg, var(--gold-light), var(--gold), var(--blue));
-}
-
-.card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(240, 215, 140, 0.68);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.42);
-}
-
-.card h2,
-.card h3 {
-  margin: 0 0 10px;
-  color: var(--gold-light);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
-
-.card p {
-  color: var(--text-muted);
-  margin-bottom: 18px;
-}
-
-.card strong {
-  color: var(--text-main);
-}
-
-/* PAGINAÇÃO */
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  margin-top: 28px;
-  color: var(--gold-light);
-  font-weight: bold;
-}
-
-.pagination span {
-  color: var(--text-muted);
-}
-
-/* STATUS */
-
-.loading,
-.error {
-  padding: 40px;
-  text-align: center;
-}
-
-.error {
-  color: #ff8c8c;
-}
-
-.empty-message {
-  text-align: center;
-  color: var(--text-muted);
-  padding: 25px;
-  border: 1px dashed rgba(200, 155, 60, 0.35);
-  background: rgba(10, 20, 40, 0.45);
-}
-
-/* HOME */
+/* =========================
+   HOME
+========================= */
 
 .hero {
   min-height: calc(100vh - 80px);
@@ -370,72 +203,166 @@ body {
   flex-wrap: wrap;
 }
 
-/* RESPONSIVO */
+/* =========================
+   INPUTS / SELECTS
+========================= */
 
-@media (max-width: 650px) {
-  .app-title,
-  .hero-title {
-    font-size: 34px;
-    letter-spacing: 2px;
-  }
-
-  .nav-link {
-  position: relative;
+.input-field,
+.select-field {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 15px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(200, 155, 60, 0.38);
+  border-radius: 10px;
+  background: #05080f;
   color: var(--text-main);
-  text-decoration: none;
-  font-size: 14px;
+  outline: none;
+  font-size: 15px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-field::placeholder {
+  color: #777266;
+}
+
+.input-field:focus,
+.select-field:focus {
+  border-color: var(--gold-light);
+  box-shadow: 0 0 0 3px rgba(200, 155, 60, 0.12);
+}
+
+.select-field {
+  cursor: pointer;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--gold-light);
   font-weight: 800;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  padding: 8px 4px;
+  font-size: 13px;
 }
 
-.nav-link::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -9px;
-  width: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--blue));
-  transform: translateX(-50%);
-  transition: width 0.2s ease;
-  box-shadow: 0 0 14px rgba(200, 155, 60, 0.55);
+.input-help {
+  margin: 8px 0 18px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-.nav-link:hover {
+.input-help strong {
   color: var(--gold-light);
 }
 
-.nav-link-active {
+/* =========================
+   BOTÕES
+========================= */
+
+button {
+  border-radius: 8px;
+}
+
+.primary-button,
+.card-button {
+  border: none;
+  cursor: pointer;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: transform 0.15s ease, filter 0.15s ease, background 0.15s ease;
+}
+
+.primary-button {
+  padding: 13px 22px;
+  margin: 0 0 22px;
+  color: #061018;
+  background: linear-gradient(180deg, var(--gold-light), var(--gold));
+  border: 1px solid #f0d78c;
+  box-shadow: 0 8px 22px var(--shadow-gold);
+}
+
+.card-button {
+  padding: 10px 14px;
+  margin-right: 8px;
+  color: white;
+  background: linear-gradient(180deg, var(--blue), var(--blue-dark));
+  border: 1px solid rgba(10, 200, 185, 0.7);
+}
+
+.card-button.danger {
+  background: linear-gradient(180deg, var(--danger-hover), var(--danger));
+  border-color: rgba(255, 120, 120, 0.5);
+}
+
+.primary-button:hover,
+.card-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.primary-button:active,
+.card-button:active {
+  transform: translateY(0);
+}
+
+.card-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.back-button {
+  margin-bottom: 22px;
+}
+
+/* =========================
+   CONTROLES / FORMULÁRIOS
+========================= */
+
+.controls-panel,
+.form-container {
+  background: linear-gradient(
+    135deg,
+    rgba(10, 20, 40, 0.95),
+    rgba(17, 24, 39, 0.95)
+  );
+  border: 1px solid var(--border-gold);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+  border-radius: 10px;
+}
+
+.controls-panel {
+  padding: 22px;
+  margin-bottom: 28px;
+}
+
+.form-container {
+  padding: 24px;
+  margin-bottom: 30px;
+}
+
+.form-container h2 {
+  margin-top: 0;
   color: var(--gold-light);
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
-.nav-link-active::after {
-  width: 100%;
-}
+/* =========================
+   AUTOCOMPLETE
+========================= */
 
-.nav-link-active::before {
-  content: "◆";
-  position: absolute;
-  left: 50%;
-  top: -13px;
-  transform: translateX(-50%);
-  color: var(--blue);
-  font-size: 10px;
-  text-shadow: 0 0 12px rgba(10, 200, 185, 0.8);
-}
-
-  .app-container {
-    padding: 30px 16px;
-  }
-
-  .pagination {
-    flex-direction: column;
-  }
-}
 .autocomplete-wrapper {
   position: relative;
+  margin-bottom: 18px;
+}
+
+.champion-name-input {
+  margin-bottom: 0;
 }
 
 .suggestions-list {
@@ -444,11 +371,15 @@ body {
   left: 0;
   right: 0;
   z-index: 30;
+  max-height: 330px;
+  overflow-y: auto;
   background: #05080f;
   border: 1px solid var(--border-gold);
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
-  max-height: 330px;
-  overflow-y: auto;
+}
+
+.edit-suggestions-list {
+  top: 58px;
 }
 
 .suggestion-item {
@@ -474,6 +405,7 @@ body {
   height: 44px;
   object-fit: cover;
   border: 1px solid var(--border-gold);
+  border-radius: 5px;
 }
 
 .suggestion-item span {
@@ -486,119 +418,27 @@ body {
   margin-top: 3px;
 }
 
-.champion-card {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.champion-image {
-  width: 92px;
-  height: 92px;
-  object-fit: cover;
-  border: 2px solid var(--border-gold);
-  box-shadow: 0 0 22px rgba(200, 155, 60, 0.25);
-  flex-shrink: 0;
-}
-
-.champion-card-content {
-  flex: 1;
-}
-
-.champion-title {
-  color: var(--text-muted);
-  text-transform: capitalize;
-  margin-top: -4px;
-}
-
-@media (max-width: 650px) {
-  .champion-card {
-    align-items: flex-start;
-  }
-
-  .champion-image {
-    width: 70px;
-    height: 70px;
-  }
-}
-.selected-champion-preview {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  margin-bottom: 14px;
-  border: 1px solid var(--border-gold);
-  background: rgba(200, 155, 60, 0.08);
-}
-
-.selected-champion-preview img {
-  width: 52px;
-  height: 52px;
-  object-fit: cover;
-  border: 1px solid var(--border-gold);
-}
-
-.selected-champion-preview div {
-  display: flex;
-  flex-direction: column;
-}
-
-.selected-champion-preview strong {
-  color: var(--gold-light);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.selected-champion-preview small {
-  color: var(--text-muted);
-  margin-top: 4px;
-}
-.back-button {
-  margin-bottom: 22px;
-}
-
-.field-label {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--gold-light);
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  font-size: 13px;
-}
-
-.autocomplete-wrapper {
-  position: relative;
-  margin-bottom: 18px;
-}
-
-.champion-name-input {
-  margin-bottom: 0;
-}
+/* =========================
+   PREVIEW DO CAMPEÃO
+========================= */
 
 .selected-champion-preview {
-  width: calc(100% - 48px);
-  margin: 0 auto 18px;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto 22px;
   padding: 13px 16px;
   display: flex;
   align-items: center;
   gap: 14px;
   border: 1px solid var(--border-gold);
   border-top: none;
-  background:
-    linear-gradient(135deg, rgba(17, 24, 39, 0.96), rgba(10, 20, 40, 0.96));
+  border-radius: 0 0 14px 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.96),
+    rgba(10, 20, 40, 0.96)
+  );
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
-  position: relative;
-}
-
-.selected-champion-preview::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 22px;
-  right: 22px;
-  height: 1px;
-  background: rgba(240, 215, 140, 0.18);
 }
 
 .selected-champion-preview img {
@@ -606,6 +446,7 @@ body {
   height: 54px;
   object-fit: cover;
   border: 1px solid var(--border-gold);
+  border-radius: 6px;
   box-shadow: 0 0 18px rgba(200, 155, 60, 0.22);
   flex-shrink: 0;
 }
@@ -627,18 +468,191 @@ body {
   margin-top: 4px;
 }
 
-.suggestions-list {
-  position: absolute;
-  top: 64px;
-  left: 0;
-  right: 0;
-  z-index: 30;
-  background: #05080f;
-  border: 1px solid var(--border-gold);
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
-  max-height: 330px;
-  overflow-y: auto;
+/* =========================
+   CARDS DE CAMPEÕES
+========================= */
+
+.card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.96),
+    rgba(10, 20, 40, 0.96)
+  );
+  border: 1px solid rgba(200, 155, 60, 0.32);
+  border-radius: 10px;
+  padding: 22px;
+  margin-bottom: 16px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.28);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--gold-light), var(--gold), var(--blue));
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(240, 215, 140, 0.68);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.42);
+}
+
+.card h2,
+.card h3 {
+  margin: 0 0 10px;
+  color: var(--gold-light);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.card p {
+  color: var(--text-muted);
+  margin-bottom: 18px;
+}
+
+.card strong {
+  color: var(--text-main);
+}
+
+.champion-card {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.champion-image {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border: 2px solid var(--border-gold);
+  border-radius: 6px;
+  box-shadow: 0 0 22px rgba(200, 155, 60, 0.25);
+  flex-shrink: 0;
+}
+
+.champion-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.champion-card-content h2 {
+  word-break: break-word;
+}
+
+.champion-title {
+  color: var(--text-muted);
+  text-transform: capitalize;
+  margin-top: -4px;
+}
+
+/* =========================
+   PAGINAÇÃO / STATUS
+========================= */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 28px;
+  color: var(--gold-light);
+  font-weight: bold;
+}
+
+.pagination span {
+  color: var(--text-muted);
+}
+
+.loading,
+.error {
+  padding: 40px;
+  text-align: center;
+}
+
+.error,
+.auth-error {
+  color: #ff8c8c;
+}
+
+.empty-message {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 25px;
+  border: 1px dashed rgba(200, 155, 60, 0.35);
+  background: rgba(10, 20, 40, 0.45);
+}
+
+/* =========================
+   LOGIN / CADASTRO
+========================= */
+
+.auth-page {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 18px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 520px;
+  padding: 34px;
+  border: 1px solid var(--border-gold);
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.98),
+    rgba(10, 20, 40, 0.98)
+  );
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.42);
+}
+
+.auth-card .app-title {
+  font-size: 34px;
+  margin-bottom: 12px;
+}
+
+.auth-card .app-subtitle {
+  margin-bottom: 28px;
+}
+
+.auth-card .select-field {
+  margin-bottom: 16px;
+}
+
+.auth-error {
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.auth-footer {
+  margin-top: 22px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.auth-footer a {
+  color: var(--gold-light);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   MODAL DE EXCLUSÃO
+========================= */
+
 .delete-modal-overlay {
   position: fixed;
   inset: 0;
@@ -654,14 +668,17 @@ body {
 .delete-modal {
   width: 100%;
   max-width: 460px;
-  background:
-    linear-gradient(135deg, rgba(17, 24, 39, 0.98), rgba(10, 20, 40, 0.98));
+  padding: 28px;
+  text-align: center;
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.98),
+    rgba(10, 20, 40, 0.98)
+  );
   border: 1px solid rgba(200, 155, 60, 0.55);
   box-shadow:
     0 25px 70px rgba(0, 0, 0, 0.7),
     0 0 28px rgba(200, 155, 60, 0.14);
-  padding: 28px;
-  text-align: center;
 }
 
 .delete-modal-kicker {
@@ -699,84 +716,42 @@ body {
   gap: 12px;
   margin-top: 24px;
 }
-.edit-suggestions-list {
-  top: 58px;
-}
-/* =========================
-   AJUSTES GERAIS DOS INPUTS
-========================= */
-
-.input-field,
-.select-field {
-  border-radius: 10px;
-  min-height: 52px;
-}
-
-button {
-  border-radius: 8px;
-}
 
 /* =========================
-   MELHORIA DOS CARDS
-========================= */
-
-.champion-card {
-  display: flex;
-  align-items: center;
-  gap: 22px;
-}
-
-.champion-image {
-  width: 96px;
-  height: 96px;
-  border-radius: 6px;
-}
-
-.champion-card-content {
-  flex: 1;
-}
-
-.champion-card-content h2 {
-  word-break: break-word;
-}
-
-.card-button {
-  border-radius: 8px;
-}
-
-/* =========================
-   CADASTRO - PREVIEW DO CHAMP
-========================= */
-
-.selected-champion-preview {
-  width: 100%;
-  max-width: 520px;
-  margin: 0 auto 22px;
-  border-radius: 0 0 14px 14px;
-  justify-content: flex-start;
-}
-
-.selected-champion-preview img {
-  border-radius: 6px;
-}
-
-/* =========================
-   RESPONSIVO MOBILE
+   RESPONSIVO TABLET / MOBILE
 ========================= */
 
 @media (max-width: 650px) {
-  body {
-    overflow-x: hidden;
-  }
-
   .navbar {
+    min-height: 86px;
     gap: 22px;
-    padding: 16px 12px;
+    padding: 16px 124px 16px 12px;
   }
 
   .nav-link {
     font-size: 13px;
     letter-spacing: 1.5px;
+  }
+
+  .navbar-user {
+    position: absolute;
+    top: 18px;
+    right: 12px;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .navbar-user span {
+    max-width: 92px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+
+  .logout-button {
+    padding: 8px 11px;
+    font-size: 12px;
   }
 
   .app-container {
@@ -790,7 +765,6 @@ button {
     line-height: 1.15;
     letter-spacing: 5px;
     margin-bottom: 18px;
-    word-break: normal;
   }
 
   .app-subtitle {
@@ -800,12 +774,20 @@ button {
     padding: 0 6px;
   }
 
+  .hero-title {
+    font-size: 38px;
+    letter-spacing: 4px;
+  }
+
+  .hero-text {
+    font-size: 16px;
+  }
+
   .form-container,
   .controls-panel,
   .card {
     width: 100%;
     padding: 24px 18px;
-    border-radius: 10px;
   }
 
   .form-container h2 {
@@ -823,25 +805,17 @@ button {
 
   .input-field,
   .select-field {
-    width: 100%;
     min-height: 58px;
     font-size: 17px;
     padding: 14px 16px;
-    border-radius: 10px;
   }
 
   .primary-button,
   .card-button {
     min-height: 52px;
     padding: 13px 18px;
-    border-radius: 8px;
   }
 
-  .back-button {
-    margin-bottom: 22px;
-  }
-
-  /* Caixa de sugestões */
   .suggestions-list {
     top: 68px;
     max-height: 310px;
@@ -855,10 +829,8 @@ button {
   .suggestion-item img {
     width: 46px;
     height: 46px;
-    border-radius: 5px;
   }
 
-  /* Preview do campeão selecionado no cadastro */
   .selected-champion-preview {
     width: 92%;
     max-width: 420px;
@@ -866,7 +838,6 @@ button {
     padding: 18px;
     justify-content: center;
     text-align: left;
-    border-radius: 0 0 14px 14px;
   }
 
   .selected-champion-preview img {
@@ -883,23 +854,23 @@ button {
     line-height: 1.35;
   }
 
-  /* Cards da listagem */
   .champion-card {
-    display: flex;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    align-items: start;
     gap: 18px;
-    padding: 22px 18px;
+    padding: 24px 18px;
   }
 
   .champion-image {
-    width: 92px;
-    height: 92px;
-    flex-shrink: 0;
+    width: 86px;
+    height: 86px;
+    grid-column: 1;
+    grid-row: 1;
   }
 
   .champion-card-content {
-    flex: 1;
-    min-width: 0;
+    grid-column: 2;
   }
 
   .champion-card-content h2 {
@@ -912,11 +883,13 @@ button {
   .champion-title {
     font-size: 18px;
     line-height: 1.35;
+    margin-bottom: 18px;
   }
 
   .champion-card-content p {
     font-size: 17px;
     line-height: 1.4;
+    margin-bottom: 18px;
   }
 
   .champion-card-content .card-button {
@@ -924,9 +897,12 @@ button {
     align-items: center;
     justify-content: center;
     width: auto;
-    min-width: 130px;
-    margin-top: 8px;
-    margin-right: 8px;
+    min-width: 108px;
+    min-height: 48px;
+    padding: 12px 16px;
+    margin: 0 8px 0 0;
+    font-size: 13px;
+    border-radius: 12px;
   }
 
   .pagination {
@@ -937,13 +913,37 @@ button {
   .pagination .card-button {
     min-width: 120px;
   }
+
+  .auth-card {
+    padding: 26px 18px;
+  }
+
+  .auth-card .app-title {
+    font-size: 30px;
+  }
 }
 
-/* =========================
-   MOBILE MUITO ESTREITO
-========================= */
-
 @media (max-width: 430px) {
+  .navbar {
+    padding: 14px 108px 14px 10px;
+    gap: 16px;
+  }
+
+  .nav-link {
+    font-size: 12px;
+    letter-spacing: 1.3px;
+  }
+
+  .navbar-user span {
+    max-width: 76px;
+    font-size: 11px;
+  }
+
+  .logout-button {
+    padding: 7px 9px;
+    font-size: 11px;
+  }
+
   .app-title {
     font-size: 34px;
     letter-spacing: 4px;
@@ -954,12 +954,14 @@ button {
   }
 
   .champion-card {
+    grid-template-columns: 78px 1fr;
     gap: 14px;
+    padding: 22px 14px;
   }
 
   .champion-image {
-    width: 76px;
-    height: 76px;
+    width: 74px;
+    height: 74px;
   }
 
   .champion-card-content h2 {
@@ -976,9 +978,11 @@ button {
   }
 
   .champion-card-content .card-button {
-    min-width: 115px;
-    padding: 12px 14px;
-    font-size: 13px;
+    min-width: 96px;
+    min-height: 46px;
+    padding: 11px 12px;
+    font-size: 12px;
+    margin-right: 6px;
   }
 
   .selected-champion-preview {
@@ -991,26 +995,35 @@ button {
   }
 }
 
-/* =========================
-   MOBILE EXTREMO
-   Evita quebrar os cards
-========================= */
-
 @media (max-width: 360px) {
+  .navbar {
+    padding-right: 96px;
+    gap: 12px;
+  }
+
+  .navbar-user span {
+    max-width: 62px;
+  }
+
   .champion-card {
-    flex-direction: column;
-    align-items: center;
+    grid-template-columns: 1fr;
     text-align: center;
   }
 
   .champion-image {
     width: 96px;
     height: 96px;
+    margin: 0 auto;
+  }
+
+  .champion-card-content {
+    grid-column: 1;
   }
 
   .champion-card-content .card-button {
-    width: 100%;
-    margin-right: 0;
+    width: auto;
+    min-width: 120px;
+    margin-right: 6px;
   }
 
   .pagination {
@@ -1021,111 +1034,121 @@ button {
     width: 100%;
   }
 }
-.auth-page {
-  min-height: calc(100vh - 80px);
+/* =========================
+   PERFIL RIOT
+========================= */
+
+.profile-card {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 40px 18px;
-}
-
-.auth-card {
-  width: 100%;
-  max-width: 520px;
-  padding: 34px;
+  gap: 28px;
+  padding: 32px;
   border: 1px solid var(--border-gold);
-  border-radius: 14px;
+  border-radius: 16px;
   background:
     linear-gradient(135deg, rgba(17, 24, 39, 0.98), rgba(10, 20, 40, 0.98));
   box-shadow: 0 22px 55px rgba(0, 0, 0, 0.42);
 }
 
-.auth-card .app-title {
-  font-size: 34px;
-  margin-bottom: 12px;
+.profile-icon-wrapper {
+  flex-shrink: 0;
+  padding: 8px;
+  border: 1px solid rgba(200, 155, 60, 0.55);
+  border-radius: 14px;
+  background: rgba(200, 155, 60, 0.08);
+  box-shadow: 0 0 24px rgba(200, 155, 60, 0.18);
 }
 
-.auth-card .app-subtitle {
-  margin-bottom: 28px;
+.profile-icon {
+  display: block;
+  width: 130px;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 10px;
 }
 
-.auth-error {
-  color: #ff8c8c;
-  font-weight: 700;
-  margin-bottom: 18px;
+.profile-info {
+  flex: 1;
+  min-width: 0;
 }
 
-.auth-footer {
-  margin-top: 22px;
-  color: var(--text-muted);
-  text-align: center;
-}
-
-.auth-footer a {
-  color: var(--gold-light);
-  font-weight: 800;
-  text-decoration: none;
-}
-
-.auth-footer a:hover {
-  text-decoration: underline;
-}
-
-.navbar-user {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--gold-light);
-  font-size: 13px;
-  font-weight: 800;
+.profile-kicker {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 2px;
   text-transform: uppercase;
+}
+
+.profile-info h2 {
+  margin: 0 0 24px;
+  color: var(--gold-light);
+  font-size: 38px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.profile-info h2 span {
+  margin-left: 8px;
+  color: var(--text-muted);
+  font-size: 22px;
   letter-spacing: 1px;
 }
 
-.logout-button {
-  padding: 8px 12px;
-  border: 1px solid rgba(200, 155, 60, 0.45);
-  border-radius: 8px;
-  background: rgba(200, 155, 60, 0.12);
-  color: var(--text-main);
-  font-weight: 800;
-  cursor: pointer;
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 }
 
-.logout-button:hover {
-  background: rgba(200, 155, 60, 0.22);
+.profile-grid div {
+  padding: 16px;
+  border: 1px solid rgba(200, 155, 60, 0.28);
+  border-radius: 12px;
+  background: rgba(5, 8, 15, 0.55);
+}
+
+.profile-grid strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--gold-light);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.profile-grid p {
+  margin: 0;
+  color: var(--text-muted);
+  word-break: break-word;
 }
 
 @media (max-width: 650px) {
-  .navbar {
-    flex-wrap: wrap;
-  }
-
-  .auth-card {
+  .profile-card {
+    flex-direction: column;
+    text-align: center;
     padding: 26px 18px;
   }
 
-  .auth-card .app-title {
+  .profile-icon {
+    width: 110px;
+    height: 110px;
+  }
+
+  .profile-info h2 {
     font-size: 30px;
   }
 
-  .navbar-user {
-    width: 100%;
-    justify-content: center;
-    margin-top: 8px;
+  .profile-info h2 span {
+    display: block;
+    margin-left: 0;
+    margin-top: 6px;
+    font-size: 18px;
   }
-}
-.input-help {
-  margin: 8px 0 18px;
-  color: var(--text-muted);
-  font-size: 14px;
-  line-height: 1.5;
-}
 
-.input-help strong {
-  color: var(--gold-light);
-}
-
-.auth-card .select-field {
-  margin-bottom: 16px;
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
 }
