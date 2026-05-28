@@ -57,4 +57,24 @@ func InitDatabase() {
 	if err != nil {
 		log.Fatal("Erro ao criar tabela users:", err)
 	}
+	createRiotAccountsTableSQL := `
+	CREATE TABLE IF NOT EXISTS riot_accounts (
+		id SERIAL PRIMARY KEY,
+		user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		game_name TEXT NOT NULL,
+		tag_line TEXT NOT NULL,
+		region TEXT NOT NULL,
+		puuid TEXT NOT NULL,
+		summoner_id TEXT,
+		profile_icon_id INTEGER,
+		summoner_level BIGINT,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		UNIQUE(user_id)
+	);`
+
+	_, err = DB.Exec(createRiotAccountsTableSQL)
+	if err != nil {
+		log.Fatal("Erro ao criar tabela riot_accounts:", err)
+	}
 }
