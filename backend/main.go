@@ -17,7 +17,8 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	database.InitDatabase()
 	defer database.DB.Close()
-
+	
+	http.HandleFunc("/me/ping", handlers.AuthMiddleware(handlers.PingUserHandler))
 	http.HandleFunc("/users/search", handlers.AuthMiddleware(handlers.SearchUsersHandler))
 
 	http.HandleFunc("/friends", handlers.AuthMiddleware(handlers.ListFriendsHandler))

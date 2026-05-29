@@ -44,81 +44,81 @@ function AppContent() {
   return (
     <BrowserRouter>
       <nav className="navbar">
-        <NavLink
-          to="/"
-          end
-          className={({ isActive }) =>
-            isActive ? "nav-link nav-link-active" : "nav-link"
-          }
-        >
-          Início
-        </NavLink>
-
-        {estaLogado && (
-          <NavLink
-            to="/dashboard"
-            className={({ isActive }) =>
-              isActive ? "nav-link nav-link-active" : "nav-link"
-            }
-          >
-            Dashboard
-          </NavLink>
-        )}
-
-        {estaLogado && (
-          <NavLink
-            to="/champions"
-            className={({ isActive }) =>
-              isActive ? "nav-link nav-link-active" : "nav-link"
-            }
-          >
-            Champions
-          </NavLink>
-        )}
-
-        {estaLogado && (
-          <NavLink
-            to="/perfil"
-            className={({ isActive }) =>
-              isActive ? "nav-link nav-link-active" : "nav-link"
-            }
-          >
-            Perfil
-          </NavLink>
-        )}
-
-        {estaLogado && (
-          <NavLink
-            to="/friends"
-            className={({ isActive }) =>
-              isActive ? "nav-link nav-link-active" : "nav-link"
-            }
-          >
-            Amigos
-          </NavLink>
-        )}
-
-        {!estaLogado && (
-          <>
+        <div className="navbar-links">
+          {!estaLogado && (
             <NavLink
-              to="/login"
+              to="/"
+              end
               className={({ isActive }) =>
                 isActive ? "nav-link nav-link-active" : "nav-link"
               }
             >
-              Login
+              Início
             </NavLink>
+          )}
 
-            <NavLink
-              to="/register"
-              className={({ isActive }) =>
-                isActive ? "nav-link nav-link-active" : "nav-link"
-              }
-            >
-              Cadastro
-            </NavLink>
-          </>
-        )}
+          {estaLogado && (
+            <>
+              <NavLink
+                to="/dashboard"
+                className={({ isActive }) =>
+                  isActive ? "nav-link nav-link-active" : "nav-link"
+                }
+              >
+                Dashboard
+              </NavLink>
+
+              <NavLink
+                to="/champions"
+                className={({ isActive }) =>
+                  isActive ? "nav-link nav-link-active" : "nav-link"
+                }
+              >
+                Champions
+              </NavLink>
+
+              <NavLink
+                to="/perfil"
+                className={({ isActive }) =>
+                  isActive ? "nav-link nav-link-active" : "nav-link"
+                }
+              >
+                Perfil
+              </NavLink>
+
+              <NavLink
+                to="/friends"
+                className={({ isActive }) =>
+                  isActive ? "nav-link nav-link-active" : "nav-link"
+                }
+              >
+                Amigos
+              </NavLink>
+            </>
+          )}
+
+          {!estaLogado && (
+            <>
+              <NavLink
+                to="/login"
+                className={({ isActive }) =>
+                  isActive ? "nav-link nav-link-active" : "nav-link"
+                }
+              >
+                Login
+              </NavLink>
+
+              <NavLink
+                to="/register"
+                className={({ isActive }) =>
+                  isActive ? "nav-link nav-link-active" : "nav-link"
+                }
+              >
+                Cadastro
+              </NavLink>
+            </>
+          )}
+        </div>
 
         {estaLogado && (
           <div className="navbar-user">

@@ -194,7 +194,24 @@ function Friends() {
               <article key={usuario.id} className="friend-card">
                 <div>
                   <strong>{usuario.name}</strong>
-                  <small>{usuario.email}</small>
+                  <small>{usuario.isOnline ? "Online agora" : `Visto por último: ${usuario.lastSeenAt || "indisponível"}`}</small>
+                  <div className="friend-card-status">
+                    <span
+                      className={
+                        usuario.isOnline ? "chat-status-dot online" : "chat-status-dot"
+                      }
+                    />
+
+                    <small
+                      className={
+                        usuario.isOnline ? "friend-status-text online" : "friend-status-text"
+                      }
+                    >
+                      {usuario.isOnline
+                        ? "Online agora"
+                        : `Visto por último: ${usuario.lastSeenAt || "indisponível"}`}
+                    </small>
+                  </div>
                 </div>
 
                 <button
@@ -226,7 +243,30 @@ function Friends() {
                 <article key={solicitacao.id} className="friend-card">
                   <div>
                     <strong>{solicitacao.user.name}</strong>
-                    <small>{solicitacao.user.email}</small>
+                    <small>{solicitacao.user.isOnline
+                              ? "Online agora"
+                              : `Visto por último: ${solicitacao.user.lastSeenAt || "indisponível"}`}</small>
+                    <div className="friend-card-status">
+                      <span
+                        className={
+                          solicitacao.user.isOnline ? "chat-status-dot online" : "chat-status-dot"
+                        }
+                      />
+
+                      <small
+                        className={
+                          solicitacao.user.isOnline
+                            ? "friend-status-text online"
+                            : "friend-status-text"
+                        }
+                      >
+                        {solicitacao.user.isOnline
+                          ? "Online agora"
+                          : `Visto por último: ${
+                              solicitacao.user.lastSeenAt || "indisponível"
+                            }`}
+                      </small>
+                    </div>
                   </div>
 
                   <div className="friend-card-actions">
@@ -263,7 +303,26 @@ function Friends() {
                 <article key={amigo.id} className="friend-card">
                   <div>
                     <strong>{amigo.user.name}</strong>
-                    <small>{amigo.user.email}</small>
+                    <small>{amigo.user.isOnline
+                      ? "Online agora"
+                      : `Visto por último: ${amigo.user.lastSeenAt || "indisponível"}`}</small>
+                    <div className="friend-card-status">
+                      <span
+                        className={
+                          amigo.user.isOnline ? "chat-status-dot online" : "chat-status-dot"
+                        }
+                      />
+
+                      <small
+                        className={
+                          amigo.user.isOnline ? "friend-status-text online" : "friend-status-text"
+                        }
+                      >
+                        {amigo.user.isOnline
+                          ? "Online agora"
+                          : `Visto por último: ${amigo.user.lastSeenAt || "indisponível"}`}
+                      </small>
+                    </div>
                   </div>
 
                   <button

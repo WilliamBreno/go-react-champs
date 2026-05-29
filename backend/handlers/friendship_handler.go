@@ -39,14 +39,23 @@ func SearchUsersHandler(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := database.DB.Query(
 		`
-		SELECT id, name, email
+		SELECT
+			id,
+			name,
+			email,
+			CASE
+				WHEN last_seen_at >= NOW() - INTERVAL '2 minutes'
+				THEN true
+				ELSE false
+			END AS is_online,
+			TO_CHAR(last_seen_at, 'YYYY-MM-DD HH24:MI:SS') AS last_seen_at
 		FROM users
 		WHERE id <> $1
 		AND (
 			name ILIKE $2
 			OR email ILIKE $2
 		)
-		ORDER BY name ASC
+		ORDER BY is_online DESC, name ASC
 		LIMIT 10
 		`,
 		userID,
@@ -64,7 +73,7 @@ func SearchUsersHandler(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var user models.PublicUser
 
-		err := rows.Scan(&user.ID, &user.Name, &user.Email)
+		err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.IsOnline, &user.LastSeenAt,)
 		if err != nil {
 			http.Error(w, "Erro ao ler usuário: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -235,7 +244,13 @@ func ListFriendsHandler(w http.ResponseWriter, r *http.Request) {
 			f.status,
 			u.id,
 			u.name,
-			u.email
+			u.email,
+			CASE
+				WHEN u.last_seen_at >= NOW() - INTERVAL '2 minutes'
+				THEN true
+				ELSE false
+			END AS is_online,
+			TO_CHAR(u.last_seen_at, 'YYYY-MM-DD HH24:MI:SS') AS last_seen_at
 		FROM friendships f
 		JOIN users u
 			ON u.id = CASE
@@ -245,7 +260,7 @@ func ListFriendsHandler(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			(f.requester_id = $1 OR f.receiver_id = $1)
 			AND f.status = 'accepted'
-		ORDER BY u.name ASC
+		ORDER BY is_online DESC, u.name ASC
 		`,
 		userID,
 	)
@@ -269,6 +284,8 @@ func ListFriendsHandler(w http.ResponseWriter, r *http.Request) {
 			&friendship.User.ID,
 			&friendship.User.Name,
 			&friendship.User.Email,
+			&friendship.User.IsOnline,
+			&friendship.User.LastSeenAt,
 		)
 
 		if err != nil {
@@ -311,7 +328,13 @@ func ListFriendRequestsHandler(w http.ResponseWriter, r *http.Request) {
 			f.status,
 			u.id,
 			u.name,
-			u.email
+			u.email,
+			CASE
+				WHEN u.last_seen_at >= NOW() - INTERVAL '2 minutes'
+				THEN true
+				ELSE false
+			END AS is_online,
+			TO_CHAR(u.last_seen_at, 'YYYY-MM-DD HH24:MI:SS') AS last_seen_at
 		FROM friendships f
 		JOIN users u ON u.id = f.requester_id
 		WHERE f.receiver_id = $1
@@ -340,6 +363,8 @@ func ListFriendRequestsHandler(w http.ResponseWriter, r *http.Request) {
 			&friendship.User.ID,
 			&friendship.User.Name,
 			&friendship.User.Email,
+			&friendship.User.IsOnline,
+			&friendship.User.LastSeenAt,
 		)
 
 		if err != nil {

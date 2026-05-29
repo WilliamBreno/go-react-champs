@@ -1,9 +1,11 @@
 package models
 
 type PublicUser struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
+	ID         int    `json:"id"`
+	Name       string `json:"name"`
+	Email      string `json:"email"`
+	IsOnline   bool   `json:"isOnline"`
+	LastSeenAt string `json:"lastSeenAt"`
 }
 
 type Friendship struct {
