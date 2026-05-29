@@ -2579,3 +2579,130 @@ button {
     font-size: 22px;
   }
 }
+/* =========================
+   NAVBAR MOBILE COM USUÁRIO NO CANTO
+========================= */
+
+@media (max-width: 760px) {
+  .navbar {
+    position: sticky;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    justify-items: center;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 12px 20px;
+    min-height: 155px;
+  }
+
+  .navbar-links {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+
+  .nav-link {
+    font-size: 11px;
+    letter-spacing: 0.9px;
+    padding: 8px 3px;
+  }
+
+  .navbar-user {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: end;
+    align-self: end;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    width: auto;
+    margin-right: 18px;
+  }
+
+  .navbar-user span {
+    display: block;
+    max-width: 150px;
+    color: var(--gold-light);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .logout-button {
+    min-height: 38px;
+    padding: 8px 13px;
+    border-radius: 12px;
+    border: 1px solid rgba(200, 155, 60, 0.5);
+    background: rgba(200, 155, 60, 0.08);
+    color: var(--text-main);
+    font-size: 10.5px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .logout-button:hover {
+    background: rgba(200, 155, 60, 0.18);
+    color: var(--gold-light);
+  }
+}
+
+@media (max-width: 430px) {
+  .navbar {
+    min-height: 150px;
+    padding: 18px 10px 18px;
+  }
+
+  .navbar-links {
+    gap: 14px;
+  }
+
+  .nav-link {
+    font-size: 10.5px;
+    letter-spacing: 0.7px;
+  }
+
+  .navbar-user {
+    margin-right: 10px;
+  }
+
+  .navbar-user span {
+    max-width: 135px;
+    font-size: 10.5px;
+  }
+
+  .logout-button {
+    padding: 8px 12px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .navbar-links {
+    gap: 10px;
+  }
+
+  .nav-link {
+    font-size: 9.5px;
+    letter-spacing: 0.5px;
+  }
+
+  .navbar-user span {
+    max-width: 110px;
+  }
+
+  .logout-button {
+    padding: 8px 10px;
+  }
+}

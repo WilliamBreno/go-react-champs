@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { useAuth } from "../context/AuthContext";
-
+import { formatarDataResumo } from "../utils/dateFormat";
 import {
   aceitarSolicitacao,
   buscarUsuarios,
@@ -194,7 +194,7 @@ function Friends() {
               <article key={usuario.id} className="friend-card">
                 <div>
                   <strong>{usuario.name}</strong>
-                  <small>{usuario.isOnline ? "Online agora" : `Visto por último: ${usuario.lastSeenAt || "indisponível"}`}</small>
+                  <small>{usuario.isOnline ? "Online agora" : `Visto por último: ${formatarDataResumo(amigo.user.lastSeenAt)}`}</small>
                   <div className="friend-card-status">
                     <span
                       className={
@@ -209,7 +209,7 @@ function Friends() {
                     >
                       {usuario.isOnline
                         ? "Online agora"
-                        : `Visto por último: ${usuario.lastSeenAt || "indisponível"}`}
+                        : `Visto por último: ${formatarDataResumo(amigo.user.lastSeenAt)}`}
                     </small>
                   </div>
                 </div>
@@ -245,7 +245,7 @@ function Friends() {
                     <strong>{solicitacao.user.name}</strong>
                     <small>{solicitacao.user.isOnline
                               ? "Online agora"
-                              : `Visto por último: ${solicitacao.user.lastSeenAt || "indisponível"}`}</small>
+                              : `Visto por último: ${formatarDataResumo(amigo.user.lastSeenAt)}`}</small>
                     <div className="friend-card-status">
                       <span
                         className={
@@ -262,9 +262,7 @@ function Friends() {
                       >
                         {solicitacao.user.isOnline
                           ? "Online agora"
-                          : `Visto por último: ${
-                              solicitacao.user.lastSeenAt || "indisponível"
-                            }`}
+                          : `Visto por último: ${formatarDataResumo(amigo.user.lastSeenAt)}`}
                       </small>
                     </div>
                   </div>

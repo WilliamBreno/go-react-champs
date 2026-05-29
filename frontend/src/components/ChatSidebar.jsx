@@ -10,6 +10,7 @@ import {
   solicitarPermissaoNotificacao,
   tocarSomNotificacao,
 } from "../utils/notificationUtils";
+import { formatarDataMensagem, formatarDataResumo } from "../utils/dateFormat";
 
 function ChatSidebar() {
   const { token, usuario } = useAuth();
@@ -312,7 +313,7 @@ function ChatSidebar() {
 
                   <div>
                     <strong>{amigo.user.name}</strong>
-                    <small>{amigo.user.isOnline ? "Online agora" : `Visto por último: ${amigo.user.lastSeenAt || "indisponível"}`}</small>
+                    <small>{amigo.user.isOnline ? "Online agora" : `Visto por último: ${formatarDataResumo(amigo.user.lastSeenAt)}`}</small>
                   </div>
                 </button>
               ))
@@ -351,7 +352,7 @@ function ChatSidebar() {
                           }
                         >
                           <p>{mensagem.content}</p>
-                          <small>{mensagem.createdAt}</small>
+                          <small>{formatarDataMensagem(mensagem.createdAt)}</small>
                         </div>
                       );
                     })
