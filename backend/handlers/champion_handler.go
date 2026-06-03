@@ -503,106 +503,106 @@ func normalizarChampionPool(champion *models.Champion) {
 		champion.RiotDifficulty = 10
 	}
 
-	func ChampionMetaByIDHandler(w http.ResponseWriter, r *http.Request) {
-		EnableCors(w)
-		w.Header().Set("Content-Type", "application/json")
+}
+func ChampionMetaByIDHandler(w http.ResponseWriter, r *http.Request) {
+	EnableCors(w)
+	w.Header().Set("Content-Type", "application/json")
 
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		if r.Method != http.MethodPut {
-			http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
-			return
-		}
-
-		userID, ok := GetUserIDFromRequest(r)
-		if !ok {
-			http.Error(w, "Usuário não autenticado", http.StatusUnauthorized)
-			return
-		}
-
-		idTexto := strings.TrimPrefix(r.URL.Path, "/champions/")
-		idTexto = strings.TrimSuffix(idTexto, "/meta")
-
-		id, err := strconv.Atoi(idTexto)
-		if err != nil {
-			http.Error(w, "ID inválido", http.StatusBadRequest)
-			return
-		}
-
-		var request models.SaveChampionMetaRequest
-
-		err = json.NewDecoder(r.Body).Decode(&request)
-		if err != nil {
-			http.Error(w, "JSON inválido", http.StatusBadRequest)
-			return
-		}
-
-		request.MetaStatus = strings.TrimSpace(request.MetaStatus)
-		request.MetaBuildJSON = strings.TrimSpace(request.MetaBuildJSON)
-
-		if request.MetaStatus == "" {
-			request.MetaStatus = "Não analisado"
-		}
-
-		if request.MetaBuildJSON == "" {
-			request.MetaBuildJSON = "{}"
-		}
-
-		if request.MetaRankPosition < 0 {
-			request.MetaRankPosition = 0
-		}
-
-		if request.MetaWinRate < 0 {
-			request.MetaWinRate = 0
-		}
-
-		if request.MetaPickRate < 0 {
-			request.MetaPickRate = 0
-		}
-
-		resultado, err := database.DB.Exec(
-			`
-			UPDATE champions
-			SET
-				meta_status = $1,
-				meta_rank_position = $2,
-				meta_win_rate = $3,
-				meta_pick_rate = $4,
-				meta_build_json = $5::jsonb,
-				meta_updated_at = CURRENT_TIMESTAMP,
-				updated_at = CURRENT_TIMESTAMP
-			WHERE id = $6 AND user_id = $7
-			`,
-			request.MetaStatus,
-			request.MetaRankPosition,
-			request.MetaWinRate,
-			request.MetaPickRate,
-			request.MetaBuildJSON,
-			id,
-			userID,
-		)
-
-		if err != nil {
-			http.Error(w, "Erro ao salvar meta: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		linhasAfetadas, err := resultado.RowsAffected()
-		if err != nil {
-			http.Error(w, "Erro ao confirmar atualização da meta", http.StatusInternalServerError)
-			return
-		}
-
-		if linhasAfetadas == 0 {
-			http.Error(w, "Campeão não encontrado para este usuário", http.StatusNotFound)
-			return
-		}
-
-		json.NewEncoder(w).Encode(map[string]string{
-			"message": "Meta salva com sucesso",
-		})
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
 	}
+
+	if r.Method != http.MethodPut {
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID, ok := GetUserIDFromRequest(r)
+	if !ok {
+		http.Error(w, "Usuário não autenticado", http.StatusUnauthorized)
+		return
+	}
+
+	idTexto := strings.TrimPrefix(r.URL.Path, "/champions/")
+	idTexto = strings.TrimSuffix(idTexto, "/meta")
+
+	id, err := strconv.Atoi(idTexto)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
+	var request models.SaveChampionMetaRequest
+
+	err = json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, "JSON inválido", http.StatusBadRequest)
+		return
+	}
+
+	request.MetaStatus = strings.TrimSpace(request.MetaStatus)
+	request.MetaBuildJSON = strings.TrimSpace(request.MetaBuildJSON)
+
+	if request.MetaStatus == "" {
+		request.MetaStatus = "Não analisado"
+	}
+
+	if request.MetaBuildJSON == "" {
+		request.MetaBuildJSON = "{}"
+	}
+
+	if request.MetaRankPosition < 0 {
+		request.MetaRankPosition = 0
+	}
+
+	if request.MetaWinRate < 0 {
+		request.MetaWinRate = 0
+	}
+
+	if request.MetaPickRate < 0 {
+		request.MetaPickRate = 0
+	}
+
+	resultado, err := database.DB.Exec(
+		`
+		UPDATE champions
+		SET
+			meta_status = $1,
+			meta_rank_position = $2,
+			meta_win_rate = $3,
+			meta_pick_rate = $4,
+			meta_build_json = $5::jsonb,
+			meta_updated_at = CURRENT_TIMESTAMP,
+			updated_at = CURRENT_TIMESTAMP
+		WHERE id = $6 AND user_id = $7
+		`,
+		request.MetaStatus,
+		request.MetaRankPosition,
+		request.MetaWinRate,
+		request.MetaPickRate,
+		request.MetaBuildJSON,
+		id,
+		userID,
+	)
+
+	if err != nil {
+		http.Error(w, "Erro ao salvar meta: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	linhasAfetadas, err := resultado.RowsAffected()
+	if err != nil {
+		http.Error(w, "Erro ao confirmar atualização da meta", http.StatusInternalServerError)
+		return
+	}
+
+	if linhasAfetadas == 0 {
+		http.Error(w, "Campeão não encontrado para este usuário", http.StatusNotFound)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Meta salva com sucesso",
+	})
 }
