@@ -55,7 +55,7 @@ func buscarMetaPorLaneOPGG(champion string, lane string) (models.ChampionMetaRes
 			Name: "lol_list_lane_meta_champions",
 			Arguments: map[string]interface{}{
 				"region": "global",
-				"tier": "emerald_plus"
+				"tier": "emerald_plus",
 				"lane": lane,
 				"desired_output_fields": []string{
 					"champions",
