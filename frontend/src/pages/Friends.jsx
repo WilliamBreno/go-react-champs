@@ -11,7 +11,7 @@ import {
   recusarSolicitacao,
   removerAmigo,
 } from "../services/friendApi";
-import { formatarDataResumo } from "../utils/dateFormat";
+
 
 function Friends() {
   const { token } = useAuth();
