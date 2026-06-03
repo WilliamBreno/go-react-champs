@@ -195,8 +195,8 @@ function Friends() {
               <article key={usuario.id} className="friend-card">
                 <div>
                   <strong>{usuario.name}</strong>
-                  <small>{usuario.isOnline ? "Online agora" : `Visto por último: ${formatarDataResumo(amigo.user.lastSeenAt)}`}</small>
-                  <div className="friend-card-status">
+
+                  <div className="friend-inline-status">
                     <span
                       className={
                         usuario.isOnline ? "chat-status-dot online" : "chat-status-dot"
@@ -210,7 +210,7 @@ function Friends() {
                     >
                       {usuario.isOnline
                         ? "Online agora"
-                        : `Visto por último: ${formatarDataResumo(amigo.user.lastSeenAt)}`}
+                        : `Visto por último: ${formatarDataResumo(usuario.lastSeenAt)}`}
                     </small>
                   </div>
                 </div>
@@ -244,10 +244,8 @@ function Friends() {
                 <article key={solicitacao.id} className="friend-card">
                   <div>
                     <strong>{solicitacao.user.name}</strong>
-                    <small>{solicitacao.user.isOnline
-                              ? "Online agora"
-                              : `Visto por último: ${formatarDataResumo(amigo.user.lastSeenAt)}`}</small>
-                    <div className="friend-card-status">
+
+                    <div className="friend-inline-status">
                       <span
                         className={
                           solicitacao.user.isOnline ? "chat-status-dot online" : "chat-status-dot"
@@ -263,7 +261,9 @@ function Friends() {
                       >
                         {solicitacao.user.isOnline
                           ? "Online agora"
-                          : `Visto por último: ${formatarDataResumo(amigo.user.lastSeenAt)}`}
+                          : `Visto por último: ${formatarDataResumo(
+                              solicitacao.user.lastSeenAt
+                            )}`}
                       </small>
                     </div>
                   </div>
@@ -302,10 +302,8 @@ function Friends() {
                 <article key={amigo.id} className="friend-card">
                   <div>
                     <strong>{amigo.user.name}</strong>
-                    <small>{amigo.user.isOnline
-                      ? "Online agora"
-                      : `Visto por último: ${formatarDataResumo(amigo.user.lastSeenAt)}`}</small>
-                    <div className="friend-card-status">
+
+                    <div className="friend-inline-status">
                       <span
                         className={
                           amigo.user.isOnline ? "chat-status-dot online" : "chat-status-dot"
