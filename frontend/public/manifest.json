@@ -1,6 +1,6 @@
 {
-  "name": "Go React Champs",
-  "short_name": "Champs",
+  "name": "Pool Main",
+  "short_name": "Pool Main",
   "description": "Dashboard, perfil Riot, amigos e chat.",
   "start_url": "/dashboard",
   "scope": "/",

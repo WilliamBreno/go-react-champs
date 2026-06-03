@@ -44,6 +44,7 @@ function AppContent() {
   return (
     <BrowserRouter>
       <nav className="navbar">
+        <img src="/pool-main.png" alt="Pool Main" />
         <div className="navbar-links">
           {!estaLogado && (
             <NavLink

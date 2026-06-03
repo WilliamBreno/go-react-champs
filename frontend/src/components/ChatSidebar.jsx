@@ -11,6 +11,8 @@ import {
   tocarSomNotificacao,
 } from "../utils/notificationUtils";
 import { formatarDataMensagem, formatarDataResumo } from "../utils/dateFormat";
+import { ativarPushNotifications } from "../services/pushApi";
+
 
 function ChatSidebar() {
   const { token, usuario } = useAuth();
@@ -35,14 +37,34 @@ function ChatSidebar() {
   const primeiraVerificacaoRef = useRef(true);
 
   async function ativarNotificacoes() {
-    const permissao = await solicitarPermissaoNotificacao();
+    try {
+      if (!("Notification" in window)) {
+        setErro("Este navegador não suporta notificações.");
+        return;
+      }
 
-    setPermissaoNotificacao(permissao);
+      if (!("serviceWorker" in navigator)) {
+        setErro("Este navegador não suporta Service Worker.");
+        return;
+      }
 
-    if (permissao === "granted") {
-      setErro("");
-    } else if (permissao === "denied") {
-      setErro("As notificações foram bloqueadas no navegador.");
+      if (!("PushManager" in window)) {
+        setErro(
+          "Push não suportado nesta abertura. No iPhone, adicione o site à Tela de Início e abra pelo ícone."
+        );
+        return;
+      }
+
+      await ativarPushNotifications(token);
+
+      setPermissaoNotificacao(Notification.permission);
+
+      if (Notification.permission === "granted") {
+        setErro("");
+      }
+    } catch (erro) {
+      console.error("Erro ao ativar notificações:", erro);
+      setErro(erro.message || "Erro ao ativar notificações.");
     }
   }
 
@@ -275,17 +297,22 @@ function ChatSidebar() {
           </div>
 
           <div className="chat-header-actions">
-            {permissaoNotificacao !== "granted" &&
-              permissaoNotificacao !== "unsupported" && (
-                <button
-                  type="button"
-                  className="chat-notification-button"
-                  onClick={ativarNotificacoes}
-                  title="Ativar notificações"
-                >
-                  🔔
-                </button>
-              )}
+            <button
+              type="button"
+              className={
+                permissaoNotificacao === "granted"
+                  ? "chat-notification-button active"
+                  : "chat-notification-button"
+              }
+              onClick={ativarNotificacoes}
+              title={
+                permissaoNotificacao === "granted"
+                  ? "Notificações ativadas"
+                  : "Ativar notificações"
+              }
+            >
+              {permissaoNotificacao === "granted" ? "🔔" : "🔕"}
+            </button>
 
             <button type="button" onClick={() => setAberto(false)}>
               ✕
