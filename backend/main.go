@@ -31,6 +31,9 @@ func main() {
 	http.HandleFunc("/chat/messages", handlers.AuthMiddleware(handlers.SendMessageHandler))
 	http.HandleFunc("/chat/messages/", handlers.AuthMiddleware(handlers.ListMessagesHandler))
 
+	http.HandleFunc("/push/public-key", handlers.GetVapidPublicKeyHandler)
+	http.HandleFunc("/push/subscribe", handlers.AuthMiddleware(handlers.SavePushSubscriptionHandler))
+
 	http.HandleFunc("/", homeHandler)
 	http.HandleFunc("/champions", handlers.AuthMiddleware(handlers.ChampionsHandler))
 	http.HandleFunc("/champions/", handlers.AuthMiddleware(handlers.ChampionByIDHandler))

@@ -214,4 +214,10 @@ func SendMessageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(message)
+
+	go services.SendPushToUser(receiverID, services.PushPayload{
+		Title: "Nova mensagem",
+		Body:  request.Content,
+		URL:   "/dashboard",
+	})
 }

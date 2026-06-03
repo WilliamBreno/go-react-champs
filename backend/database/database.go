@@ -108,4 +108,20 @@ func InitDatabase() {
 	if err != nil {
 		log.Fatal("Erro ao criar tabela messages:", err)
 	}
+	createPushSubscriptionsTableSQL := `
+	CREATE TABLE IF NOT EXISTS push_subscriptions (
+		id SERIAL PRIMARY KEY,
+		user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		endpoint TEXT NOT NULL UNIQUE,
+		p256dh TEXT NOT NULL,
+		auth TEXT NOT NULL,
+		user_agent TEXT,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);`
+
+	_, err = DB.Exec(createPushSubscriptionsTableSQL)
+	if err != nil {
+		log.Fatal("Erro ao criar tabela push_subscriptions:", err)
+	}
 }
