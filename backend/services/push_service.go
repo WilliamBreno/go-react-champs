@@ -73,7 +73,6 @@ func SendPushToUser(userID int, payload PushPayload) {
 			Subscriber:      vapidSubject,
 			VAPIDPrivateKey: vapidPrivateKey,
 			TTL:             60,
-			AuthScheme:      webpush.WebPush,
 		})
 
 		if err != nil {
