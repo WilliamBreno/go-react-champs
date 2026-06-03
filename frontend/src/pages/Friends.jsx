@@ -11,6 +11,7 @@ import {
   recusarSolicitacao,
   removerAmigo,
 } from "../services/friendApi";
+import { formatarDataResumo } from "../utils/dateFormat";
 
 function Friends() {
   const { token } = useAuth();
@@ -303,7 +304,7 @@ function Friends() {
                     <strong>{amigo.user.name}</strong>
                     <small>{amigo.user.isOnline
                       ? "Online agora"
-                      : `Visto por último: ${amigo.user.lastSeenAt || "indisponível"}`}</small>
+                      : `Visto por último: ${formatarDataResumo(amigo.user.lastSeenAt)}`}</small>
                     <div className="friend-card-status">
                       <span
                         className={
@@ -318,7 +319,7 @@ function Friends() {
                       >
                         {amigo.user.isOnline
                           ? "Online agora"
-                          : `Visto por último: ${amigo.user.lastSeenAt || "indisponível"}`}
+                          : `Visto por último: ${formatarDataResumo(amigo.user.lastSeenAt)}`}
                       </small>
                     </div>
                   </div>

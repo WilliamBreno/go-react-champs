@@ -1,18 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "../context/AuthContext";
+
 import { listarAmigos } from "../services/friendApi";
 import { enviarMensagem, listarMensagens } from "../services/chatApi";
 import { atualizarStatusOnline } from "../services/userApi";
+import { ativarPushNotifications } from "../services/pushApi";
+
 import {
   notificarNovaMensagem,
   piscarTituloDaPagina,
-  solicitarPermissaoNotificacao,
   tocarSomNotificacao,
 } from "../utils/notificationUtils";
-import { formatarDataMensagem, formatarDataResumo } from "../utils/dateFormat";
-import { ativarPushNotifications } from "../services/pushApi";
 
+import { formatarDataMensagem, formatarDataResumo } from "../utils/dateFormat";
 
 function ChatSidebar() {
   const { token, usuario } = useAuth();
@@ -26,25 +27,62 @@ function ChatSidebar() {
   const [erro, setErro] = useState("");
   const [carregandoMensagens, setCarregandoMensagens] = useState(false);
 
-  const [permissaoNotificacao, setPermissaoNotificacao] = useState(
-    "Notification" in window ? Notification.permission : "unsupported"
-  );
+  const [permissaoNotificacao, setPermissaoNotificacao] = useState(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      return "unsupported";
+    }
+
+    return Notification.permission;
+  });
 
   const [totalNovasMensagens, setTotalNovasMensagens] = useState(0);
   const [ultimaMensagemPorAmizade, setUltimaMensagemPorAmizade] = useState({});
 
   const mensagensFinalRef = useRef(null);
   const primeiraVerificacaoRef = useRef(true);
+  const ultimaMensagemPorAmizadeRef = useRef({});
+
+  function isMobileDevice() {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    const hasTouch =
+      "ontouchstart" in window ||
+      navigator.maxTouchPoints > 0 ||
+      navigator.msMaxTouchPoints > 0;
+
+    const isSmallScreen = window.matchMedia("(max-width: 760px)").matches;
+    const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
+
+    return hasTouch || isSmallScreen || isCoarsePointer;
+  }
+
+  function atualizarMapaUltimaMensagem(novoMapa) {
+    ultimaMensagemPorAmizadeRef.current = {
+      ...ultimaMensagemPorAmizadeRef.current,
+      ...novoMapa,
+    };
+
+    setUltimaMensagemPorAmizade(ultimaMensagemPorAmizadeRef.current);
+  }
 
   async function ativarNotificacoes() {
     try {
+      if (!token) {
+        setErro("Faça login para ativar notificações.");
+        return;
+      }
+
       if (!("Notification" in window)) {
         setErro("Este navegador não suporta notificações.");
+        setPermissaoNotificacao("unsupported");
         return;
       }
 
       if (!("serviceWorker" in navigator)) {
         setErro("Este navegador não suporta Service Worker.");
+        setPermissaoNotificacao("unsupported");
         return;
       }
 
@@ -52,6 +90,7 @@ function ChatSidebar() {
         setErro(
           "Push não suportado nesta abertura. No iPhone, adicione o site à Tela de Início e abra pelo ícone."
         );
+        setPermissaoNotificacao("unsupported");
         return;
       }
 
@@ -109,6 +148,7 @@ function ChatSidebar() {
 
     try {
       setCarregandoMensagens(true);
+      setErro("");
 
       const dados = await listarMensagens(token, friendshipId);
       const mensagensRecebidas = dados || [];
@@ -118,10 +158,9 @@ function ChatSidebar() {
       const ultimaMensagem = mensagensRecebidas[mensagensRecebidas.length - 1];
 
       if (ultimaMensagem) {
-        setUltimaMensagemPorAmizade((estadoAtual) => ({
-          ...estadoAtual,
+        atualizarMapaUltimaMensagem({
           [friendshipId]: ultimaMensagem.id,
-        }));
+        });
       }
     } catch (erro) {
       console.error("Erro ao carregar mensagens:", erro);
@@ -132,7 +171,7 @@ function ChatSidebar() {
   }
 
   async function verificarNovasMensagens(listaAmigos = amigos) {
-    if (!token || listaAmigos.length === 0) {
+    if (!token || !listaAmigos || listaAmigos.length === 0) {
       return;
     }
 
@@ -150,7 +189,7 @@ function ChatSidebar() {
 
         novoMapa[amigo.id] = ultimaMensagem.id;
 
-        const ultimoIdAnterior = ultimaMensagemPorAmizade[amigo.id];
+        const ultimoIdAnterior = ultimaMensagemPorAmizadeRef.current[amigo.id];
 
         const temMensagemNova =
           !primeiraVerificacaoRef.current &&
@@ -170,10 +209,7 @@ function ChatSidebar() {
       }
     }
 
-    setUltimaMensagemPorAmizade((estadoAtual) => ({
-      ...estadoAtual,
-      ...novoMapa,
-    }));
+    atualizarMapaUltimaMensagem(novoMapa);
 
     primeiraVerificacaoRef.current = false;
   }
@@ -194,6 +230,8 @@ function ChatSidebar() {
     }
 
     try {
+      setErro("");
+
       await enviarMensagem(token, amigoSelecionado.id, texto.trim());
 
       setTexto("");
@@ -202,6 +240,15 @@ function ChatSidebar() {
     } catch (erro) {
       console.error("Erro ao enviar mensagem:", erro);
       setErro("Erro ao enviar mensagem.");
+    }
+  }
+
+  async function abrirChat() {
+    setAberto(true);
+    setTotalNovasMensagens(0);
+
+    if (isMobileDevice() && permissaoNotificacao !== "granted" && token) {
+      await ativarNotificacoes();
     }
   }
 
@@ -228,6 +275,10 @@ function ChatSidebar() {
   }, [token]);
 
   useEffect(() => {
+    if (!token) {
+      return;
+    }
+
     async function iniciarChat() {
       const lista = await carregarAmigos();
 
@@ -247,7 +298,7 @@ function ChatSidebar() {
     const intervalo = setInterval(async () => {
       let listaAtual = amigos;
 
-      if (listaAtual.length === 0) {
+      if (!listaAtual || listaAtual.length === 0) {
         listaAtual = await carregarAmigos();
       }
 
@@ -255,7 +306,7 @@ function ChatSidebar() {
     }, 5000);
 
     return () => clearInterval(intervalo);
-  }, [token, amigos, ultimaMensagemPorAmizade, amigoSelecionado]);
+  }, [token, amigos, amigoSelecionado, usuario?.id]);
 
   useEffect(() => {
     if (aberto) {
@@ -275,10 +326,7 @@ function ChatSidebar() {
       <button
         type="button"
         className="chat-floating-button"
-        onClick={() => {
-          setAberto(true);
-          setTotalNovasMensagens(0);
-        }}
+        onClick={abrirChat}
       >
         💬
 
@@ -336,11 +384,24 @@ function ChatSidebar() {
                   }
                   onClick={() => selecionarAmigo(amigo)}
                 >
-                  <span className={amigo.user.isOnline ? "chat-status-dot online": "chat-status-dot"} />
+                  <span
+                    className={
+                      amigo.user.isOnline
+                        ? "chat-status-dot online"
+                        : "chat-status-dot"
+                    }
+                  />
 
                   <div>
                     <strong>{amigo.user.name}</strong>
-                    <small>{amigo.user.isOnline ? "Online agora" : `Visto por último: ${formatarDataResumo(amigo.user.lastSeenAt)}`}</small>
+
+                    <small>
+                      {amigo.user.isOnline
+                        ? "Online agora"
+                        : `Visto por último: ${formatarDataResumo(
+                            amigo.user.lastSeenAt
+                          )}`}
+                    </small>
                   </div>
                 </button>
               ))
@@ -352,12 +413,21 @@ function ChatSidebar() {
               <div className="chat-placeholder">
                 <h3>Selecione um amigo</h3>
                 <p>Escolha alguém da lista para iniciar a conversa.</p>
+
+                {erro && <p className="chat-error">{erro}</p>}
               </div>
             ) : (
               <>
                 <div className="chat-conversation-header">
                   <strong>{amigoSelecionado.user.name}</strong>
-                  <small>Conversa privada</small>
+
+                  <small>
+                    {amigoSelecionado.user.isOnline
+                      ? "Online agora"
+                      : `Visto por último: ${formatarDataResumo(
+                          amigoSelecionado.user.lastSeenAt
+                        )}`}
+                  </small>
                 </div>
 
                 <div className="chat-messages">
@@ -379,7 +449,9 @@ function ChatSidebar() {
                           }
                         >
                           <p>{mensagem.content}</p>
-                          <small>{formatarDataMensagem(mensagem.createdAt)}</small>
+                          <small>
+                            {formatarDataMensagem(mensagem.createdAt)}
+                          </small>
                         </div>
                       );
                     })
