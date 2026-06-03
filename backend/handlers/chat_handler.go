@@ -217,7 +217,7 @@ func SendMessageHandler(w http.ResponseWriter, r *http.Request) {
 	go services.SendPushToUser(receiverID, services.PushPayload{
 		Title: "Nova mensagem",
 		Body:  request.Content,
-		URL:   "/dashboard",
+		URL:   "/friends?chat=" + strconv.Itoa(request.FriendshipID),
 	})
 
 	json.NewEncoder(w).Encode(message)

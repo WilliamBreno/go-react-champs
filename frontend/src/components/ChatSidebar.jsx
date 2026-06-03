@@ -14,9 +14,13 @@ import {
 } from "../utils/notificationUtils";
 
 import { formatarDataMensagem, formatarDataResumo } from "../utils/dateFormat";
+import { useLocation, useNavigate } from "react-router-dom";
 
 function ChatSidebar() {
   const { token, usuario } = useAuth();
+
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const [aberto, setAberto] = useState(false);
   const [amigos, setAmigos] = useState([]);
@@ -257,6 +261,41 @@ function ChatSidebar() {
       return;
     }
 
+    const params = new URLSearchParams(location.search);
+    const chatId = params.get("chat");
+
+    if (!chatId) {
+      return;
+    }
+
+    async function abrirConversaDaNotificacao() {
+      const lista = amigos.length > 0 ? amigos : await carregarAmigos();
+
+      const amizade = lista.find((amigo) => String(amigo.id) === String(chatId));
+
+      if (!amizade) {
+        setAberto(true);
+        setErro("Conversa não encontrada na sua lista de amigos.");
+        return;
+      }
+
+      setAberto(true);
+      setAmigoSelecionado(amizade);
+      setTotalNovasMensagens(0);
+
+      await carregarMensagens(amizade.id, amizade);
+
+      navigate("/friends", { replace: true });
+    }
+
+    abrirConversaDaNotificacao();
+  }, [token, location.search]);
+
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+
     async function enviarPing() {
       try {
         await atualizarStatusOnline(token);
@@ -368,7 +407,9 @@ function ChatSidebar() {
           </div>
         </div>
 
-        <div className="chat-body">
+        <div className= {
+    amigoSelecionado ? "chat-body chat-body-conversation-open" : "chat-body"
+  }>
           <section className="chat-friends-list">
             {amigos.length === 0 ? (
               <p className="chat-empty">Nenhum amigo disponível.</p>
@@ -419,15 +460,29 @@ function ChatSidebar() {
             ) : (
               <>
                 <div className="chat-conversation-header">
-                  <strong>{amigoSelecionado.user.name}</strong>
+                  <button
+                    type="button"
+                    className="chat-back-button"
+                    onClick={() => {
+                      setAmigoSelecionado(null);
+                      setMensagens([]);
+                      setErro("");
+                    }}
+                  >
+                    ←
+                  </button>
 
-                  <small>
-                    {amigoSelecionado.user.isOnline
-                      ? "Online agora"
-                      : `Visto por último: ${formatarDataResumo(
-                          amigoSelecionado.user.lastSeenAt
-                        )}`}
-                  </small>
+                  <div>
+                    <strong>{amigoSelecionado.user.name}</strong>
+
+                    <small>
+                      {amigoSelecionado.user.isOnline
+                        ? "Online agora"
+                        : `Visto por último: ${formatarDataResumo(
+                            amigoSelecionado.user.lastSeenAt
+                          )}`}
+                    </small>
+                  </div>
                 </div>
 
                 <div className="chat-messages">

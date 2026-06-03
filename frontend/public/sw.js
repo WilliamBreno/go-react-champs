@@ -1,8 +1,8 @@
 self.addEventListener("push", (event) => {
   let data = {
-    title: "Nova notificação",
+    title: "Nova mensagem",
     body: "Você recebeu uma nova mensagem.",
-    url: "/dashboard",
+    url: "/friends",
   };
 
   if (event.data) {
@@ -16,10 +16,10 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title || "Nova mensagem", {
       body: data.body || "Você recebeu uma nova mensagem.",
-      icon: "/icons/icon-192.png",
-      badge: "/icons/icon-192.png",
+      icon: "/logo.png",
+      badge: "/logo.png",
       data: {
-        url: data.url || "/dashboard",
+        url: data.url || "/friends",
       },
     })
   );
@@ -28,21 +28,30 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const urlToOpen = event.notification.data?.url || "/dashboard";
+  const urlToOpen = event.notification.data?.url || "/friends";
 
   event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if ("focus" in client) {
-          client.focus();
-          client.navigate(urlToOpen);
-          return;
-        }
-      }
+    clients
+      .matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      })
+      .then((clientList) => {
+        for (const client of clientList) {
+          if ("focus" in client) {
+            client.focus();
 
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
-    })
+            if ("navigate" in client) {
+              return client.navigate(urlToOpen);
+            }
+
+            return;
+          }
+        }
+
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      })
   );
 });

@@ -2957,3 +2957,146 @@ button {
     font-size: 16px;
   }
 }
+/* =========================
+   CHAT MOBILE - LISTA E CONVERSA EM TELA CHEIA
+========================= */
+
+.chat-back-button {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .chat-sidebar {
+    width: 100%;
+    max-width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    right: -100%;
+    border-left: none;
+  }
+
+  .chat-sidebar.open {
+    right: 0;
+  }
+
+  .chat-header {
+    min-height: 64px;
+    padding: 12px 14px;
+  }
+
+  .chat-body {
+    height: calc(100dvh - 64px);
+    display: grid;
+    grid-template-rows: 1fr;
+  }
+
+  .chat-friends-list {
+    height: 100%;
+    max-height: none;
+    overflow-y: auto;
+    padding: 12px;
+    border-bottom: none;
+  }
+
+  .chat-friend {
+    min-height: 64px;
+    padding: 13px 12px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    background: rgba(5, 8, 15, 0.42);
+    border: 1px solid rgba(200, 155, 60, 0.16);
+  }
+
+  .chat-friend.active {
+    background: rgba(10, 200, 185, 0.1);
+    border-color: rgba(10, 200, 185, 0.4);
+  }
+
+  .chat-friend strong {
+    font-size: 13px;
+  }
+
+  .chat-friend small {
+    font-size: 11px;
+    max-width: 260px;
+  }
+
+  .chat-conversation {
+    display: none;
+  }
+
+  .chat-body-conversation-open {
+    grid-template-rows: 1fr;
+  }
+
+  .chat-body-conversation-open .chat-friends-list {
+    display: none;
+  }
+
+  .chat-body-conversation-open .chat-conversation {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .chat-conversation-header {
+    min-height: 58px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .chat-back-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    border: 1px solid rgba(200, 155, 60, 0.45);
+    border-radius: 10px;
+    background: rgba(200, 155, 60, 0.08);
+    color: var(--gold-light);
+    font-size: 20px;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .chat-messages {
+    flex: 1;
+    min-height: 0;
+    padding: 12px;
+    overflow-y: auto;
+  }
+
+  .chat-message {
+    max-width: 88%;
+  }
+
+  .chat-form {
+    padding: 10px;
+    grid-template-columns: 1fr auto;
+    background: rgba(5, 8, 15, 0.98);
+  }
+
+  .chat-form input {
+    min-height: 46px;
+    font-size: 16px;
+  }
+
+  .chat-form button {
+    min-height: 46px;
+    padding: 0 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .chat-form {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-form button {
+    width: 100%;
+  }
+}
