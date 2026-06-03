@@ -8,6 +8,7 @@ import (
 
 	"projeto-go-react/database"
 	"projeto-go-react/models"
+	"projeto-go-react/services"
 )
 
 func ListMessagesHandler(w http.ResponseWriter, r *http.Request) {
@@ -213,11 +214,11 @@ func SendMessageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(message)
-
 	go services.SendPushToUser(receiverID, services.PushPayload{
 		Title: "Nova mensagem",
 		Body:  request.Content,
 		URL:   "/dashboard",
 	})
+
+	json.NewEncoder(w).Encode(message)
 }
