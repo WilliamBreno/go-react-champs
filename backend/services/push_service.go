@@ -21,7 +21,7 @@ func SendPushToUser(userID int, payload PushPayload) {
 	vapidSubject := os.Getenv("VAPID_SUBJECT")
 
 	if vapidPrivateKey == "" {
-		log.Println("VAPID_PRIVATE_KEY não configurada")
+		log.Println("[PUSH] VAPID_PRIVATE_KEY não configurada")
 		return
 	}
 
@@ -39,25 +39,30 @@ func SendPushToUser(userID int, payload PushPayload) {
 	)
 
 	if err != nil {
-		log.Println("Erro ao buscar inscrições push:", err)
+		log.Println("[PUSH] Erro ao buscar inscrições:", err)
 		return
 	}
 	defer rows.Close()
 
 	body, err := json.Marshal(payload)
 	if err != nil {
-		log.Println("Erro ao montar payload push:", err)
+		log.Println("[PUSH] Erro ao montar payload:", err)
 		return
 	}
 
+	total := 0
+	enviadas := 0
+
 	for rows.Next() {
+		total++
+
 		var endpoint string
 		var p256dh string
 		var auth string
 
 		err := rows.Scan(&endpoint, &p256dh, &auth)
 		if err != nil {
-			log.Println("Erro ao ler inscrição push:", err)
+			log.Println("[PUSH] Erro ao ler inscrição:", err)
 			continue
 		}
 
@@ -76,11 +81,13 @@ func SendPushToUser(userID int, payload PushPayload) {
 		})
 
 		if err != nil {
-			log.Println("Erro ao enviar push:", err)
+			log.Println("[PUSH] Erro ao enviar push:", err)
 			continue
 		}
 
 		if resp != nil {
+			log.Println("[PUSH] Status:", resp.StatusCode, "Endpoint:", endpoint)
+
 			resp.Body.Close()
 
 			if resp.StatusCode == 404 || resp.StatusCode == 410 {
@@ -88,7 +95,20 @@ func SendPushToUser(userID int, payload PushPayload) {
 					`DELETE FROM push_subscriptions WHERE endpoint = $1`,
 					endpoint,
 				)
+
+				log.Println("[PUSH] Inscrição removida por expiração:", endpoint)
+				continue
+			}
+
+			if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+				enviadas++
 			}
 		}
 	}
+
+	if err := rows.Err(); err != nil {
+		log.Println("[PUSH] Erro ao percorrer inscrições:", err)
+	}
+
+	log.Println("[PUSH] Usuário:", userID, "Inscrições:", total, "Enviadas:", enviadas)
 }
