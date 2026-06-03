@@ -3216,3 +3216,303 @@ button {
     font-size: 11px;
   }
 }
+/* =========================
+   MEU POOL
+========================= */
+
+.notes-field {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.pool-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 14px;
+}
+
+.pool-tags span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 6px 10px;
+  border: 1px solid rgba(200, 155, 60, 0.32);
+  border-radius: 999px;
+  background: rgba(200, 155, 60, 0.08);
+  color: var(--gold-light);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.pool-notes {
+  padding: 12px;
+  border-left: 3px solid var(--blue);
+  background: rgba(10, 200, 185, 0.08);
+  border-radius: 8px;
+}
+
+@media (max-width: 760px) {
+  .pool-tags {
+    gap: 6px;
+  }
+
+  .pool-tags span {
+    min-height: 26px;
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+
+  .notes-field {
+    min-height: 110px;
+  }
+}
+/* =========================
+   CONTROLES DO POOL
+========================= */
+
+.pool-controls {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.pool-controls .input-field,
+.pool-controls .select-field {
+  margin-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .pool-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 650px) {
+  .pool-controls {
+    grid-template-columns: 1fr;
+  }
+}
+/* =========================
+   BOTÕES MINIMALISTAS
+========================= */
+
+button,
+.primary-button,
+.card-button,
+.logout-button,
+.dashboard-link-button,
+.dashboard-action-link,
+.chat-form button,
+.chat-header button,
+.chat-notification-button,
+.chat-back-button,
+.friend-card .card-button {
+  min-height: auto;
+  padding: 7px 11px;
+  margin: 0;
+  border-radius: 9px;
+  font-size: 10.5px;
+  line-height: 1.1;
+  letter-spacing: 0.55px;
+  font-weight: 800;
+}
+
+.primary-button {
+  padding: 8px 14px;
+  margin-bottom: 16px;
+}
+
+.card-button {
+  padding: 7px 11px;
+  margin-right: 6px;
+}
+
+.logout-button {
+  padding: 7px 10px;
+}
+
+.dashboard-link-button {
+  min-height: 34px;
+  padding: 7px 11px;
+}
+
+.dashboard-action-link {
+  min-height: 34px;
+  padding: 8px 12px;
+}
+
+.back-button {
+  margin-bottom: 14px;
+}
+
+.delete-modal-actions {
+  gap: 8px;
+}
+
+.friend-card .card-button {
+  padding: 7px 10px;
+  font-size: 10px;
+}
+
+.chat-form button {
+  min-height: 38px;
+  padding: 0 11px;
+  font-size: 10px;
+}
+
+.chat-header button,
+.chat-notification-button,
+.chat-back-button {
+  width: 31px;
+  height: 31px;
+  min-width: 31px;
+  padding: 0;
+  font-size: 14px;
+}
+
+.chat-floating-button {
+  width: 48px;
+  height: 48px;
+  font-size: 20px;
+}
+
+.suggestion-item {
+  padding: 8px 10px;
+  border-radius: 0;
+}
+
+.suggestion-item strong {
+  font-size: 12px;
+}
+
+.suggestion-item small {
+  font-size: 10px;
+}
+
+/* Botões dentro dos cards de campeão */
+.champion-card-content .card-button {
+  min-width: auto;
+  min-height: auto;
+  padding: 7px 11px;
+  margin-right: 6px;
+  font-size: 10.5px;
+}
+
+/* Paginação */
+.pagination {
+  gap: 8px;
+}
+
+.pagination .card-button {
+  min-width: auto;
+  padding: 7px 12px;
+}
+
+.pagination span {
+  font-size: 12px;
+}
+
+/* Hover mais sutil */
+.primary-button:hover,
+.card-button:hover,
+.dashboard-link-button:hover,
+.logout-button:hover,
+.chat-form button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}
+
+/* =========================
+   BOTÕES MINIMALISTAS MOBILE
+========================= */
+
+@media (max-width: 760px) {
+  button,
+  .primary-button,
+  .card-button,
+  .logout-button,
+  .dashboard-link-button,
+  .dashboard-action-link,
+  .chat-form button,
+  .friend-card .card-button {
+    padding: 6px 9px;
+    border-radius: 8px;
+    font-size: 9.5px;
+    letter-spacing: 0.45px;
+  }
+
+  .primary-button {
+    padding: 7px 12px;
+    margin-bottom: 14px;
+  }
+
+  .card-button {
+    margin-right: 5px;
+  }
+
+  .logout-button {
+    padding: 6px 9px;
+  }
+
+  .champion-card-content .card-button {
+    min-width: auto;
+    min-height: auto;
+    padding: 6px 9px;
+    font-size: 9.5px;
+  }
+
+  .chat-form button {
+    min-height: 36px;
+    padding: 0 10px;
+    font-size: 9.5px;
+  }
+
+  .chat-header button,
+  .chat-notification-button,
+  .chat-back-button {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    padding: 0;
+    font-size: 13px;
+  }
+
+  .chat-floating-button {
+    width: 46px;
+    height: 46px;
+    font-size: 19px;
+  }
+}
+
+@media (max-width: 430px) {
+  button,
+  .primary-button,
+  .card-button,
+  .logout-button,
+  .dashboard-link-button,
+  .dashboard-action-link,
+  .chat-form button,
+  .friend-card .card-button {
+    padding: 5px 8px;
+    font-size: 9px;
+  }
+
+  .champion-card-content .card-button {
+    padding: 5px 8px;
+    font-size: 9px;
+  }
+
+  .chat-form button {
+    min-height: 34px;
+  }
+
+  .chat-floating-button {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+}

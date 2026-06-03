@@ -1,96 +1,73 @@
-import { useEffect, useRef, useState } from "react";
-import { formatarMaestriaInput } from "../utils/numberFormat";
+import {
+  formatarDificuldadeChampion,
+} from "../services/riotApi";
+
+const LANES = ["Top", "Jungle", "Mid", "ADC", "Support"];
+
+const PRIORIDADES = ["Main", "Secundário", "Pocket Pick", "Testando"];
+
+const STATUS_POOL = ["Dominado", "Treinando", "Quero aprender", "Pausado"];
 
 function ChampionForm({
   nome,
-  maestria,
-  setMaestria,
+  lane,
+  prioridade,
+  status,
+  notes,
+  setNome,
+  setLane,
+  setPrioridade,
+  setStatus,
+  setNotes,
   onSubmit,
-  sugestoes = [],
+  sugestoes,
   onSelecionarSugestao,
-  onVoltar,
   championSelecionado,
   onNomeChange,
+  onVoltar,
 }) {
-  const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
-  const autocompleteRef = useRef(null);
-
-  useEffect(() => {
-    function fecharAoClicarFora(event) {
-      if (
-        autocompleteRef.current &&
-        !autocompleteRef.current.contains(event.target)
-      ) {
-        setMostrarSugestoes(false);
-      }
-    }
-
-    document.addEventListener("mousedown", fecharAoClicarFora);
-
-    return () => {
-      document.removeEventListener("mousedown", fecharAoClicarFora);
-    };
-  }, []);
-
-  function selecionarChampion(champion) {
-    onSelecionarSugestao(champion);
-    setMostrarSugestoes(false);
-  }
-
   return (
     <main className="app-container">
-      <h1 className="app-title">Cadastrar Campeão</h1>
-
-      <p className="app-subtitle">
-        Selecione um campeão oficial da Riot e informe sua maestria.
-      </p>
-
       <button type="button" className="card-button back-button" onClick={onVoltar}>
         Voltar
       </button>
 
-      <form onSubmit={onSubmit} className="form-container">
-        <h2>Novo campeão</h2>
+      <section className="form-container">
+        <h2>Adicionar ao Pool</h2>
 
-        <label className="field-label">Nome:</label>
+        <form onSubmit={onSubmit}>
+          <label className="field-label">Campeão</label>
 
-        <div className="autocomplete-wrapper" ref={autocompleteRef}>
-          <input
-            className="input-field champion-name-input"
-            type="text"
-            placeholder="Digite o nome do campeão"
-            value={nome}
-            onFocus={() => {
-              if (nome.trim().length > 0) {
-                setMostrarSugestoes(true);
-              }
-            }}
-            onChange={(event) => {
-              onNomeChange(event.target.value);
-              setMostrarSugestoes(true);
-            }}
-            autoComplete="off"
-          />
+          <div className="autocomplete-wrapper">
+            <input
+              className="input-field champion-name-input"
+              type="text"
+              placeholder="Digite o nome do campeão..."
+              value={nome}
+              onChange={(event) => onNomeChange(event.target.value)}
+              autoComplete="off"
+            />
 
-          {mostrarSugestoes && sugestoes.length > 0 && (
-            <div className="suggestions-list">
-              {sugestoes.map((champion) => (
-                <button
-                  key={champion.id}
-                  type="button"
-                  className="suggestion-item"
-                  onClick={() => selecionarChampion(champion)}
-                >
-                  <img src={champion.imagem} alt={champion.nome} />
+            {sugestoes.length > 0 && (
+              <div className="suggestions-list">
+                {sugestoes.map((champion) => (
+                  <button
+                    key={champion.id}
+                    type="button"
+                    className="suggestion-item"
+                    onClick={() => onSelecionarSugestao(champion)}
+                  >
+                    <img src={champion.imagem} alt={champion.nome} />
 
-                  <span>
-                    <strong>{champion.nome}</strong>
-                    <small>{champion.titulo}</small>
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
+                    <span>
+                      <strong>{champion.nome}</strong>
+                      <small>{champion.titulo}</small>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {championSelecionado && (
             <div className="selected-champion-preview">
@@ -102,29 +79,67 @@ function ChampionForm({
               <div>
                 <strong>{championSelecionado.nome}</strong>
                 <small>{championSelecionado.titulo}</small>
+                <small>
+                  Dificuldade Riot:{" "}
+                  {formatarDificuldadeChampion(championSelecionado.dificuldade)}
+                </small>
               </div>
             </div>
           )}
-        </div>
 
-        <label className="field-label">Maestria:</label>
+          <label className="field-label">Lane</label>
+          <select
+            className="select-field"
+            value={lane}
+            onChange={(event) => setLane(event.target.value)}
+          >
+            {LANES.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
 
-        <input
-          className="input-field"
-          type="text"
-          inputMode="numeric"
-          placeholder="Ex: 2.000.000"
-          value={maestria}
-          onChange={(event) => {
-            const valorFormatado = formatarMaestriaInput(event.target.value);
-            setMaestria(valorFormatado);
-          }}
-        />
+          <label className="field-label">Prioridade</label>
+          <select
+            className="select-field"
+            value={prioridade}
+            onChange={(event) => setPrioridade(event.target.value)}
+          >
+            {PRIORIDADES.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
 
-        <button type="submit" className="primary-button">
-          Cadastrar
-        </button>
-      </form>
+          <label className="field-label">Status</label>
+          <select
+            className="select-field"
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
+          >
+            {STATUS_POOL.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+
+          <label className="field-label">Notas</label>
+          <textarea
+            className="input-field notes-field"
+            placeholder="Ex: treinar matchup contra Ahri, melhorar farm, testar build..."
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            rows={5}
+          />
+
+          <button type="submit" className="primary-button">
+            Adicionar ao Pool
+          </button>
+        </form>
+      </section>
     </main>
   );
 }

@@ -1,19 +1,26 @@
-import { useEffect, useRef, useState } from "react";
+import { formatarDificuldadeChampion } from "../services/riotApi";
 
-import {
-  formatarMaestriaInput,
-  formatarMaestriaVisual,
-} from "../utils/numberFormat";
+const LANES = ["Top", "Jungle", "Mid", "ADC", "Support"];
+
+const PRIORIDADES = ["Main", "Secundário", "Pocket Pick", "Testando"];
+
+const STATUS_POOL = ["Dominado", "Treinando", "Quero aprender", "Pausado"];
 
 function ChampionCard({
   champion,
   championRiot,
-  championsRiot = [],
+  championsRiot,
   editandoId,
   editNome,
-  editMaestria,
+  editLane,
+  editPrioridade,
+  editStatus,
+  editNotes,
   setEditNome,
-  setEditMaestria,
+  setEditLane,
+  setEditPrioridade,
+  setEditStatus,
+  setEditNotes,
   iniciarEdicao,
   cancelarEdicao,
   salvarEdicao,
@@ -21,163 +28,172 @@ function ChampionCard({
 }) {
   const estaEditando = editandoId === champion.id;
 
-  const [mostrarSugestoesEdicao, setMostrarSugestoesEdicao] = useState(false);
-  const autocompleteEditRef = useRef(null);
-
-  useEffect(() => {
-    function fecharAoClicarFora(event) {
-      if (
-        autocompleteEditRef.current &&
-        !autocompleteEditRef.current.contains(event.target)
-      ) {
-        setMostrarSugestoesEdicao(false);
-      }
-    }
-
-    document.addEventListener("mousedown", fecharAoClicarFora);
-
-    return () => {
-      document.removeEventListener("mousedown", fecharAoClicarFora);
-    };
-  }, []);
+  const imagemChampion = championRiot?.imagem;
+  const tituloChampion = championRiot?.titulo;
+  const dificuldade =
+    champion.riotDifficulty || championRiot?.dificuldade || 0;
 
   const sugestoesEdicao =
-    estaEditando && editNome.trim().length > 0
+    editNome.trim().length > 0
       ? championsRiot
-          .filter((championRiotItem) =>
-            championRiotItem.nome
-              .toLowerCase()
-              .includes(editNome.toLowerCase())
+          .filter((item) =>
+            item.nome.toLowerCase().includes(editNome.toLowerCase())
           )
           .slice(0, 8)
       : [];
 
-  function selecionarSugestaoEdicao(championRiotItem) {
-    setEditNome(championRiotItem.nome);
-    setMostrarSugestoesEdicao(false);
+  if (estaEditando) {
+    return (
+      <article className="card champion-card">
+        {imagemChampion && (
+          <img
+            className="champion-image"
+            src={imagemChampion}
+            alt={champion.nome}
+          />
+        )}
+
+        <div className="champion-card-content">
+          <div className="autocomplete-wrapper">
+            <label className="field-label">Campeão</label>
+
+            <input
+              className="input-field champion-name-input"
+              type="text"
+              value={editNome}
+              onChange={(event) => setEditNome(event.target.value)}
+              autoComplete="off"
+            />
+
+            {sugestoesEdicao.length > 0 && (
+              <div className="suggestions-list edit-suggestions-list">
+                {sugestoesEdicao.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="suggestion-item"
+                    onClick={() => setEditNome(item.nome)}
+                  >
+                    <img src={item.imagem} alt={item.nome} />
+
+                    <span>
+                      <strong>{item.nome}</strong>
+                      <small>{item.titulo}</small>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <label className="field-label">Lane</label>
+          <select
+            className="select-field"
+            value={editLane}
+            onChange={(event) => setEditLane(event.target.value)}
+          >
+            {LANES.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+
+          <label className="field-label">Prioridade</label>
+          <select
+            className="select-field"
+            value={editPrioridade}
+            onChange={(event) => setEditPrioridade(event.target.value)}
+          >
+            {PRIORIDADES.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+
+          <label className="field-label">Status</label>
+          <select
+            className="select-field"
+            value={editStatus}
+            onChange={(event) => setEditStatus(event.target.value)}
+          >
+            {STATUS_POOL.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+
+          <label className="field-label">Notas</label>
+          <textarea
+            className="input-field notes-field"
+            value={editNotes}
+            onChange={(event) => setEditNotes(event.target.value)}
+            rows={4}
+          />
+
+          <button
+            type="button"
+            className="card-button"
+            onClick={() => salvarEdicao(champion.id)}
+          >
+            Salvar
+          </button>
+
+          <button type="button" className="card-button danger" onClick={cancelarEdicao}>
+            Cancelar
+          </button>
+        </div>
+      </article>
+    );
   }
 
   return (
-    <section className="card champion-card">
-      {championRiot && !estaEditando && (
+    <article className="card champion-card">
+      {imagemChampion && (
         <img
           className="champion-image"
-          src={championRiot.imagem}
+          src={imagemChampion}
           alt={champion.nome}
         />
       )}
 
       <div className="champion-card-content">
-        {estaEditando ? (
-          <>
-            <h3>Editando campeão</h3>
+        <h2>{champion.nome}</h2>
 
-            <label className="field-label">Nome:</label>
+        {tituloChampion && <p className="champion-title">{tituloChampion}</p>}
 
-            <div className="autocomplete-wrapper" ref={autocompleteEditRef}>
-              <input
-                className="input-field champion-name-input"
-                type="text"
-                value={editNome}
-                onFocus={() => {
-                  if (editNome.trim().length > 0) {
-                    setMostrarSugestoesEdicao(true);
-                  }
-                }}
-                onChange={(event) => {
-                  setEditNome(event.target.value);
-                  setMostrarSugestoesEdicao(true);
-                }}
-                placeholder="Nome do campeão"
-                autoComplete="off"
-              />
+        <div className="pool-tags">
+          <span>{champion.lane}</span>
+          <span>{champion.prioridade}</span>
+          <span>{champion.status}</span>
+          <span>{formatarDificuldadeChampion(dificuldade)}</span>
+        </div>
 
-              {mostrarSugestoesEdicao && sugestoesEdicao.length > 0 && (
-                <div className="suggestions-list edit-suggestions-list">
-                  {sugestoesEdicao.map((championRiotItem) => (
-                    <button
-                      key={championRiotItem.id}
-                      type="button"
-                      className="suggestion-item"
-                      onClick={() => selecionarSugestaoEdicao(championRiotItem)}
-                    >
-                      <img
-                        src={championRiotItem.imagem}
-                        alt={championRiotItem.nome}
-                      />
-
-                      <span>
-                        <strong>{championRiotItem.nome}</strong>
-                        <small>{championRiotItem.titulo}</small>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <label className="field-label">Maestria:</label>
-
-            <input
-              className="input-field"
-              type="text"
-              inputMode="numeric"
-              value={editMaestria}
-              onChange={(event) => {
-                const valorFormatado = formatarMaestriaInput(event.target.value);
-                setEditMaestria(valorFormatado);
-              }}
-              placeholder="Maestria"
-            />
-
-            <button
-              className="card-button"
-              type="button"
-              onClick={() => salvarEdicao(champion.id)}
-            >
-              Salvar
-            </button>
-
-            <button
-              className="card-button danger"
-              type="button"
-              onClick={cancelarEdicao}
-            >
-              Cancelar
-            </button>
-          </>
-        ) : (
-          <>
-            <h2>{champion.nome}</h2>
-
-            {championRiot && (
-              <p className="champion-title">{championRiot.titulo}</p>
-            )}
-
-            <p>
-              <strong>Maestria:</strong>{" "}
-              {formatarMaestriaVisual(champion.maestria)}
-            </p>
-
-            <button
-              className="card-button"
-              type="button"
-              onClick={() => iniciarEdicao(champion)}
-            >
-              Editar
-            </button>
-
-            <button
-              className="card-button danger"
-              type="button"
-              onClick={() => excluirChampion(champion)}
-            >
-              Excluir
-            </button>
-          </>
+        {champion.notes && (
+          <p className="pool-notes">
+            <strong>Notas:</strong> {champion.notes}
+          </p>
         )}
+
+        <button
+          type="button"
+          className="card-button"
+          onClick={() => iniciarEdicao(champion)}
+        >
+          Editar
+        </button>
+
+        <button
+          type="button"
+          className="card-button danger"
+          onClick={() => excluirChampion(champion)}
+        >
+          Remover
+        </button>
       </div>
-    </section>
+    </article>
   );
 }
 

@@ -2,41 +2,39 @@ const API_URL = (
   import.meta.env.VITE_API_URL || "http://localhost:8080"
 ).replace(/\/$/, "");
 
-async function tratarResposta(resposta, mensagemPadrao) {
-  if (!resposta.ok) {
-    const mensagem = await resposta.text();
-    throw new Error(mensagem || mensagemPadrao);
-  }
-
-  return resposta.json();
-}
-
-function criarHeaders(token) {
+function getHeaders(token) {
   return {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,
   };
 }
 
-export async function listarChampions(
+export async function listarChampions({
   token,
-  nome = "",
-  ordem = "recentes",
   page = 1,
-  limit = 5
-) {
+  limit = 5,
+  nome = "",
+  lane = "Todos",
+  status = "Todos",
+  ordem = "recentes",
+}) {
   const params = new URLSearchParams();
 
-  if (nome.trim() !== "") {
-    params.append("nome", nome);
+  params.set("page", page);
+  params.set("limit", limit);
+  params.set("ordem", ordem);
+
+  if (nome.trim()) {
+    params.set("nome", nome.trim());
   }
 
-  if (ordem) {
-    params.append("ordem", ordem);
+  if (lane && lane !== "Todos") {
+    params.set("lane", lane);
   }
 
-  params.append("page", page);
-  params.append("limit", limit);
+  if (status && status !== "Todos") {
+    params.set("status", status);
+  }
 
   const resposta = await fetch(`${API_URL}/champions?${params.toString()}`, {
     method: "GET",
@@ -45,27 +43,56 @@ export async function listarChampions(
     },
   });
 
-  return tratarResposta(resposta, "Erro ao buscar campeões");
+  if (!resposta.ok) {
+    const mensagem = await resposta.text();
+    throw new Error(mensagem || "Erro ao listar pool de campeões");
+  }
+
+  return resposta.json();
 }
 
 export async function cadastrarChampion(token, champion) {
   const resposta = await fetch(`${API_URL}/champions`, {
     method: "POST",
-    headers: criarHeaders(token),
-    body: JSON.stringify(champion),
+    headers: getHeaders(token),
+    body: JSON.stringify({
+      nome: champion.nome,
+      lane: champion.lane,
+      prioridade: champion.prioridade,
+      status: champion.status,
+      notes: champion.notes,
+      riotDifficulty: champion.riotDifficulty,
+    }),
   });
 
-  return tratarResposta(resposta, "Erro ao cadastrar campeão");
+  if (!resposta.ok) {
+    const mensagem = await resposta.text();
+    throw new Error(mensagem || "Erro ao adicionar campeão ao pool");
+  }
+
+  return resposta.json();
 }
 
 export async function editarChampion(token, id, champion) {
   const resposta = await fetch(`${API_URL}/champions/${id}`, {
     method: "PUT",
-    headers: criarHeaders(token),
-    body: JSON.stringify(champion),
+    headers: getHeaders(token),
+    body: JSON.stringify({
+      nome: champion.nome,
+      lane: champion.lane,
+      prioridade: champion.prioridade,
+      status: champion.status,
+      notes: champion.notes,
+      riotDifficulty: champion.riotDifficulty,
+    }),
   });
 
-  return tratarResposta(resposta, "Erro ao editar campeão");
+  if (!resposta.ok) {
+    const mensagem = await resposta.text();
+    throw new Error(mensagem || "Erro ao editar campeão do pool");
+  }
+
+  return resposta.json();
 }
 
 export async function excluirChampion(token, id) {
@@ -78,7 +105,7 @@ export async function excluirChampion(token, id) {
 
   if (!resposta.ok) {
     const mensagem = await resposta.text();
-    throw new Error(mensagem || "Erro ao excluir campeão");
+    throw new Error(mensagem || "Erro ao remover campeão do pool");
   }
 
   return true;

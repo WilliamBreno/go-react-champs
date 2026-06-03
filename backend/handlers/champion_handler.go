@@ -80,6 +80,8 @@ func ChampionByIDHandler(w http.ResponseWriter, r *http.Request) {
 
 func listarChampions(w http.ResponseWriter, r *http.Request, userID int) {
 	nome := strings.TrimSpace(r.URL.Query().Get("nome"))
+	lane := strings.TrimSpace(r.URL.Query().Get("lane"))
+	status := strings.TrimSpace(r.URL.Query().Get("status"))
 	ordem := r.URL.Query().Get("ordem")
 
 	page, err := strconv.Atoi(r.URL.Query().Get("page"))
@@ -104,20 +106,58 @@ func listarChampions(w http.ResponseWriter, r *http.Request, userID int) {
 		paramIndex++
 	}
 
+	if lane != "" && lane != "Todos" {
+		where += " AND lane = $" + strconv.Itoa(paramIndex)
+		args = append(args, lane)
+		paramIndex++
+	}
+
+	if status != "" && status != "Todos" {
+		where += " AND status = $" + strconv.Itoa(paramIndex)
+		args = append(args, status)
+		paramIndex++
+	}
+
 	orderBy := "ORDER BY id DESC"
 
 	switch ordem {
-	case "maior_maestria":
-		orderBy = "ORDER BY maestria DESC"
-
-	case "menor_maestria":
-		orderBy = "ORDER BY maestria ASC"
-
 	case "nome_az":
 		orderBy = "ORDER BY nome ASC"
 
 	case "nome_za":
 		orderBy = "ORDER BY nome DESC"
+
+	case "lane":
+		orderBy = "ORDER BY lane ASC, nome ASC"
+
+	case "prioridade":
+		orderBy = `
+		ORDER BY
+			CASE prioridade
+				WHEN 'Main' THEN 1
+				WHEN 'Secundário' THEN 2
+				WHEN 'Pocket Pick' THEN 3
+				WHEN 'Testando' THEN 4
+				ELSE 5
+			END,
+			nome ASC
+		`
+
+	case "status":
+		orderBy = `
+		ORDER BY
+			CASE status
+				WHEN 'Dominado' THEN 1
+				WHEN 'Treinando' THEN 2
+				WHEN 'Quero aprender' THEN 3
+				WHEN 'Pausado' THEN 4
+				ELSE 5
+			END,
+			nome ASC
+		`
+
+	case "dificuldade":
+		orderBy = "ORDER BY riot_difficulty DESC, nome ASC"
 
 	case "recentes":
 		orderBy = "ORDER BY id DESC"
@@ -134,7 +174,17 @@ func listarChampions(w http.ResponseWriter, r *http.Request, userID int) {
 	}
 
 	query := `
-		SELECT id, nome, maestria
+		SELECT
+			id,
+			nome,
+			COALESCE(maestria, 0),
+			COALESCE(lane, 'Mid'),
+			COALESCE(prioridade, 'Testando'),
+			COALESCE(status, 'Quero aprender'),
+			COALESCE(notes, ''),
+			COALESCE(riot_difficulty, 0),
+			TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at,
+			TO_CHAR(updated_at, 'YYYY-MM-DD HH24:MI:SS') AS updated_at
 		FROM champions
 		` + where + `
 		` + orderBy + `
@@ -145,7 +195,7 @@ func listarChampions(w http.ResponseWriter, r *http.Request, userID int) {
 
 	rows, err := database.DB.Query(query, args...)
 	if err != nil {
-		http.Error(w, "Erro ao buscar campeões: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Erro ao buscar pool de campeões: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
@@ -155,9 +205,21 @@ func listarChampions(w http.ResponseWriter, r *http.Request, userID int) {
 	for rows.Next() {
 		var champion models.Champion
 
-		err := rows.Scan(&champion.ID, &champion.Nome, &champion.Maestria)
+		err := rows.Scan(
+			&champion.ID,
+			&champion.Nome,
+			&champion.Maestria,
+			&champion.Lane,
+			&champion.Prioridade,
+			&champion.Status,
+			&champion.Notes,
+			&champion.RiotDifficulty,
+			&champion.CreatedAt,
+			&champion.UpdatedAt,
+		)
+
 		if err != nil {
-			http.Error(w, "Erro ao ler campeão: "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Erro ao ler campeão do pool: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -189,31 +251,61 @@ func cadastrarChampion(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	champion.Nome = strings.TrimSpace(champion.Nome)
+	normalizarChampionPool(&champion)
 
 	if champion.Nome == "" {
 		http.Error(w, "Nome é obrigatório", http.StatusBadRequest)
 		return
 	}
 
-	if champion.Maestria <= 0 {
-		http.Error(w, "Maestria precisa ser maior que zero", http.StatusBadRequest)
-		return
-	}
-
 	err = database.DB.QueryRow(
 		`
-		INSERT INTO champions (nome, maestria, user_id)
-		VALUES ($1, $2, $3)
-		RETURNING id, nome, maestria
+		INSERT INTO champions (
+			nome,
+			maestria,
+			user_id,
+			lane,
+			prioridade,
+			status,
+			notes,
+			riot_difficulty,
+			updated_at
+		)
+		VALUES ($1, 0, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)
+		RETURNING
+			id,
+			nome,
+			COALESCE(maestria, 0),
+			COALESCE(lane, 'Mid'),
+			COALESCE(prioridade, 'Testando'),
+			COALESCE(status, 'Quero aprender'),
+			COALESCE(notes, ''),
+			COALESCE(riot_difficulty, 0),
+			TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at,
+			TO_CHAR(updated_at, 'YYYY-MM-DD HH24:MI:SS') AS updated_at
 		`,
 		champion.Nome,
-		champion.Maestria,
 		userID,
-	).Scan(&champion.ID, &champion.Nome, &champion.Maestria)
+		champion.Lane,
+		champion.Prioridade,
+		champion.Status,
+		champion.Notes,
+		champion.RiotDifficulty,
+	).Scan(
+		&champion.ID,
+		&champion.Nome,
+		&champion.Maestria,
+		&champion.Lane,
+		&champion.Prioridade,
+		&champion.Status,
+		&champion.Notes,
+		&champion.RiotDifficulty,
+		&champion.CreatedAt,
+		&champion.UpdatedAt,
+	)
 
 	if err != nil {
-		http.Error(w, "Erro ao cadastrar campeão: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Erro ao adicionar campeão ao pool: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -229,47 +321,62 @@ func editarChampion(w http.ResponseWriter, r *http.Request, id int, userID int) 
 		return
 	}
 
-	champion.Nome = strings.TrimSpace(champion.Nome)
+	normalizarChampionPool(&champion)
 
 	if champion.Nome == "" {
 		http.Error(w, "Nome é obrigatório", http.StatusBadRequest)
 		return
 	}
 
-	if champion.Maestria <= 0 {
-		http.Error(w, "Maestria precisa ser maior que zero", http.StatusBadRequest)
-		return
-	}
-
-	resultado, err := database.DB.Exec(
+	err = database.DB.QueryRow(
 		`
 		UPDATE champions
-		SET nome = $1, maestria = $2
-		WHERE id = $3 AND user_id = $4
+		SET
+			nome = $1,
+			lane = $2,
+			prioridade = $3,
+			status = $4,
+			notes = $5,
+			riot_difficulty = $6,
+			updated_at = CURRENT_TIMESTAMP
+		WHERE id = $7 AND user_id = $8
+		RETURNING
+			id,
+			nome,
+			COALESCE(maestria, 0),
+			COALESCE(lane, 'Mid'),
+			COALESCE(prioridade, 'Testando'),
+			COALESCE(status, 'Quero aprender'),
+			COALESCE(notes, ''),
+			COALESCE(riot_difficulty, 0),
+			TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at,
+			TO_CHAR(updated_at, 'YYYY-MM-DD HH24:MI:SS') AS updated_at
 		`,
 		champion.Nome,
-		champion.Maestria,
+		champion.Lane,
+		champion.Prioridade,
+		champion.Status,
+		champion.Notes,
+		champion.RiotDifficulty,
 		id,
 		userID,
+	).Scan(
+		&champion.ID,
+		&champion.Nome,
+		&champion.Maestria,
+		&champion.Lane,
+		&champion.Prioridade,
+		&champion.Status,
+		&champion.Notes,
+		&champion.RiotDifficulty,
+		&champion.CreatedAt,
+		&champion.UpdatedAt,
 	)
 
 	if err != nil {
-		http.Error(w, "Erro ao editar campeão: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Campeão não encontrado para este usuário ou erro ao editar: "+err.Error(), http.StatusNotFound)
 		return
 	}
-
-	linhasAfetadas, err := resultado.RowsAffected()
-	if err != nil {
-		http.Error(w, "Erro ao confirmar edição", http.StatusInternalServerError)
-		return
-	}
-
-	if linhasAfetadas == 0 {
-		http.Error(w, "Campeão não encontrado para este usuário", http.StatusNotFound)
-		return
-	}
-
-	champion.ID = id
 
 	json.NewEncoder(w).Encode(champion)
 }
@@ -285,7 +392,7 @@ func excluirChampion(w http.ResponseWriter, r *http.Request, id int, userID int)
 	)
 
 	if err != nil {
-		http.Error(w, "Erro ao excluir campeão: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Erro ao excluir campeão do pool: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -301,4 +408,32 @@ func excluirChampion(w http.ResponseWriter, r *http.Request, id int, userID int)
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func normalizarChampionPool(champion *models.Champion) {
+	champion.Nome = strings.TrimSpace(champion.Nome)
+	champion.Lane = strings.TrimSpace(champion.Lane)
+	champion.Prioridade = strings.TrimSpace(champion.Prioridade)
+	champion.Status = strings.TrimSpace(champion.Status)
+	champion.Notes = strings.TrimSpace(champion.Notes)
+
+	if champion.Lane == "" {
+		champion.Lane = "Mid"
+	}
+
+	if champion.Prioridade == "" {
+		champion.Prioridade = "Testando"
+	}
+
+	if champion.Status == "" {
+		champion.Status = "Quero aprender"
+	}
+
+	if champion.RiotDifficulty < 0 {
+		champion.RiotDifficulty = 0
+	}
+
+	if champion.RiotDifficulty > 10 {
+		champion.RiotDifficulty = 10
+	}
 }

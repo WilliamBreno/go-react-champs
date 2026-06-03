@@ -1,15 +1,25 @@
 package models
 
 type Champion struct {
-	ID       int     `json:"id"`
-	Nome     string  `json:"nome"`
-	Maestria int64 `json:"maestria"`
+	ID             int    `json:"id"`
+	Nome           string `json:"nome"`
+	Maestria       int    `json:"maestria,omitempty"`
+
+	Lane           string `json:"lane"`
+	Prioridade     string `json:"prioridade"`
+	Status         string `json:"status"`
+	Notes          string `json:"notes"`
+	RiotDifficulty int    `json:"riotDifficulty"`
+
+	IDUser         int    `json:"idUser,omitempty"`
+	CreatedAt      string `json:"createdAt,omitempty"`
+	UpdatedAt      string `json:"updatedAt,omitempty"`
 }
 
 type ChampionResponse struct {
 	Dados        []Champion `json:"dados"`
-	Pagina      int        `json:"pagina"`
-	Limite      int        `json:"limite"`
-	Total       int        `json:"total"`
-	TotalPaginas int       `json:"totalPaginas"`
+	Pagina       int        `json:"pagina"`
+	Limite       int        `json:"limite"`
+	Total        int        `json:"total"`
+	TotalPaginas int        `json:"totalPaginas"`
 }

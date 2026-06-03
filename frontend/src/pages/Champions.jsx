@@ -6,11 +6,6 @@ import ChampionCard from "../components/ChampionCard";
 import { useAuth } from "../context/AuthContext";
 
 import {
-  converterMaestriaParaNumero,
-  formatarMaestriaInput,
-} from "../utils/numberFormat";
-
-import {
   encontrarChampionPorNome,
   listarChampionsRiot,
 } from "../services/riotApi";
@@ -22,15 +17,30 @@ import {
   excluirChampion as excluirChampionAPI,
 } from "../services/api";
 
+const LANES_FILTRO = ["Todos", "Top", "Jungle", "Mid", "ADC", "Support"];
+
+const STATUS_FILTRO = [
+  "Todos",
+  "Dominado",
+  "Treinando",
+  "Quero aprender",
+  "Pausado",
+];
+
 function Champions() {
   const { token } = useAuth();
 
   const [champions, setChampions] = useState([]);
 
   const [nome, setNome] = useState("");
-  const [maestria, setMaestria] = useState("");
+  const [lane, setLane] = useState("Mid");
+  const [prioridade, setPrioridade] = useState("Testando");
+  const [status, setStatus] = useState("Quero aprender");
+  const [notes, setNotes] = useState("");
 
   const [busca, setBusca] = useState("");
+  const [laneFiltro, setLaneFiltro] = useState("Todos");
+  const [statusFiltro, setStatusFiltro] = useState("Todos");
   const [ordem, setOrdem] = useState("recentes");
 
   const [tela, setTela] = useState("lista");
@@ -40,7 +50,10 @@ function Champions() {
 
   const [editandoId, setEditandoId] = useState(null);
   const [editNome, setEditNome] = useState("");
-  const [editMaestria, setEditMaestria] = useState("");
+  const [editLane, setEditLane] = useState("Mid");
+  const [editPrioridade, setEditPrioridade] = useState("Testando");
+  const [editStatus, setEditStatus] = useState("Quero aprender");
+  const [editNotes, setEditNotes] = useState("");
 
   const [pagina, setPagina] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -52,31 +65,44 @@ function Champions() {
   const [popupExcluir, setPopupExcluir] = useState(false);
   const [championParaExcluir, setChampionParaExcluir] = useState(null);
 
-  async function carregarChampions(
+  function limparFormulario() {
+    setNome("");
+    setLane("Mid");
+    setPrioridade("Testando");
+    setStatus("Quero aprender");
+    setNotes("");
+    setChampionSelecionado(null);
+  }
+
+  async function carregarChampions({
     nomeBusca = busca,
+    laneBusca = laneFiltro,
+    statusBusca = statusFiltro,
     ordemBusca = ordem,
-    paginaBusca = pagina
-  ) {
+    paginaBusca = pagina,
+  } = {}) {
     if (!token) {
       return;
     }
 
     try {
-      const resposta = await listarChampions(
+      const resposta = await listarChampions({
         token,
-        nomeBusca,
-        ordemBusca,
-        paginaBusca,
-        limite
-      );
+        nome: nomeBusca,
+        lane: laneBusca,
+        status: statusBusca,
+        ordem: ordemBusca,
+        page: paginaBusca,
+        limit: limite,
+      });
 
-      setChampions(resposta.dados);
-      setPagina(resposta.pagina);
-      setTotalPaginas(resposta.totalPaginas);
+      setChampions(resposta.dados || []);
+      setPagina(resposta.pagina || 1);
+      setTotalPaginas(resposta.totalPaginas || 1);
       setErro("");
     } catch (erro) {
-      console.error("Erro ao carregar campeões:", erro);
-      setErro(`Não foi possível carregar os campeões. ${erro.message}`);
+      console.error("Erro ao carregar pool:", erro);
+      setErro(`Não foi possível carregar seu pool. ${erro.message}`);
     } finally {
       setCarregandoInicial(false);
     }
@@ -103,44 +129,51 @@ function Champions() {
       return;
     }
 
-    const maestriaNumero = converterMaestriaParaNumero(maestria);
-
-    if (!maestriaNumero || maestriaNumero <= 0) {
-      alert("Digite uma maestria maior que zero.");
-      return;
-    }
-
     const novoChampion = {
       nome: championEscolhido.nome,
-      maestria: maestriaNumero,
+      lane,
+      prioridade,
+      status,
+      notes,
+      riotDifficulty: championEscolhido.dificuldade || 0,
     };
 
     try {
       await cadastrarChampionAPI(token, novoChampion);
 
-      setNome("");
-      setMaestria("");
-      setChampionSelecionado(null);
+      limparFormulario();
       setTela("lista");
       setPagina(1);
 
-      await carregarChampions(busca, ordem, 1);
+      await carregarChampions({
+        nomeBusca: busca,
+        laneBusca: laneFiltro,
+        statusBusca: statusFiltro,
+        ordemBusca: ordem,
+        paginaBusca: 1,
+      });
     } catch (erro) {
-      console.error("Erro ao cadastrar campeão:", erro);
-      alert(`Erro ao cadastrar campeão. ${erro.message}`);
+      console.error("Erro ao adicionar ao pool:", erro);
+      alert(`Erro ao adicionar ao pool. ${erro.message}`);
     }
   }
 
   function iniciarEdicao(champion) {
     setEditandoId(champion.id);
     setEditNome(champion.nome);
-    setEditMaestria(formatarMaestriaInput(champion.maestria));
+    setEditLane(champion.lane || "Mid");
+    setEditPrioridade(champion.prioridade || "Testando");
+    setEditStatus(champion.status || "Quero aprender");
+    setEditNotes(champion.notes || "");
   }
 
   function cancelarEdicao() {
     setEditandoId(null);
     setEditNome("");
-    setEditMaestria("");
+    setEditLane("Mid");
+    setEditPrioridade("Testando");
+    setEditStatus("Quero aprender");
+    setEditNotes("");
   }
 
   async function salvarEdicao(id) {
@@ -161,16 +194,13 @@ function Champions() {
       return;
     }
 
-    const editMaestriaNumero = converterMaestriaParaNumero(editMaestria);
-
-    if (!editMaestriaNumero || editMaestriaNumero <= 0) {
-      alert("Digite uma maestria maior que zero.");
-      return;
-    }
-
     const championAtualizado = {
       nome: championEditado.nome,
-      maestria: editMaestriaNumero,
+      lane: editLane,
+      prioridade: editPrioridade,
+      status: editStatus,
+      notes: editNotes,
+      riotDifficulty: championEditado.dificuldade || 0,
     };
 
     try {
@@ -178,10 +208,16 @@ function Champions() {
 
       cancelarEdicao();
 
-      await carregarChampions(busca, ordem, pagina);
+      await carregarChampions({
+        nomeBusca: busca,
+        laneBusca: laneFiltro,
+        statusBusca: statusFiltro,
+        ordemBusca: ordem,
+        paginaBusca: pagina,
+      });
     } catch (erro) {
-      console.error("Erro ao editar campeão:", erro);
-      alert(`Erro ao editar campeão. ${erro.message}`);
+      console.error("Erro ao editar campeão do pool:", erro);
+      alert(`Erro ao editar campeão do pool. ${erro.message}`);
     }
   }
 
@@ -210,10 +246,16 @@ function Champions() {
 
       fecharPopupExcluir();
 
-      await carregarChampions(busca, ordem, pagina);
+      await carregarChampions({
+        nomeBusca: busca,
+        laneBusca: laneFiltro,
+        statusBusca: statusFiltro,
+        ordemBusca: ordem,
+        paginaBusca: pagina,
+      });
     } catch (erro) {
-      console.error("Erro ao excluir campeão:", erro);
-      alert(`Erro ao excluir campeão. ${erro.message}`);
+      console.error("Erro ao remover do pool:", erro);
+      alert(`Erro ao remover do pool. ${erro.message}`);
     }
   }
 
@@ -241,11 +283,17 @@ function Champions() {
     }
 
     const timer = setTimeout(() => {
-      carregarChampions(busca, ordem, pagina);
+      carregarChampions({
+        nomeBusca: busca,
+        laneBusca: laneFiltro,
+        statusBusca: statusFiltro,
+        ordemBusca: ordem,
+        paginaBusca: pagina,
+      });
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [token, busca, ordem, pagina]);
+  }, [token, busca, laneFiltro, statusFiltro, ordem, pagina]);
 
   const sugestoesChampions =
     nome.trim().length > 0 && !championSelecionado
@@ -257,7 +305,7 @@ function Champions() {
       : [];
 
   if (carregandoInicial) {
-    return <h1 className="loading">Carregando campeões...</h1>;
+    return <h1 className="loading">Carregando pool...</h1>;
   }
 
   if (erro) {
@@ -268,9 +316,15 @@ function Champions() {
     return (
       <ChampionForm
         nome={nome}
-        maestria={maestria}
+        lane={lane}
+        prioridade={prioridade}
+        status={status}
+        notes={notes}
         setNome={setNome}
-        setMaestria={setMaestria}
+        setLane={setLane}
+        setPrioridade={setPrioridade}
+        setStatus={setStatus}
+        setNotes={setNotes}
         onSubmit={cadastrarChampion}
         sugestoes={sugestoesChampions}
         onSelecionarSugestao={selecionarSugestao}
@@ -281,9 +335,7 @@ function Champions() {
         }}
         onVoltar={() => {
           setTela("lista");
-          setNome("");
-          setMaestria("");
-          setChampionSelecionado(null);
+          limparFormulario();
         }}
       />
     );
@@ -291,11 +343,11 @@ function Champions() {
 
   return (
     <main className="app-container">
-      <h1 className="app-title">Escolha seu Campeão</h1>
+      <h1 className="app-title">Meu Pool</h1>
 
       <p className="app-subtitle">
-        Gerencie seus campeões, acompanhe suas maestrias e organize sua lista
-        com busca, filtros e paginação.
+        Organize os campeões que você joga, treina ou quer aprender. A
+        dificuldade é preenchida automaticamente pelo Data Dragon da Riot.
       </p>
 
       <button
@@ -303,15 +355,13 @@ function Champions() {
         type="button"
         onClick={() => {
           setTela("cadastro");
-          setNome("");
-          setMaestria("");
-          setChampionSelecionado(null);
+          limparFormulario();
         }}
       >
-        Cadastrar Champ
+        Adicionar ao Pool
       </button>
 
-      <div className="controls-panel">
+      <div className="controls-panel pool-controls">
         <input
           className="input-field"
           type="text"
@@ -325,6 +375,36 @@ function Champions() {
 
         <select
           className="select-field"
+          value={laneFiltro}
+          onChange={(event) => {
+            setLaneFiltro(event.target.value);
+            setPagina(1);
+          }}
+        >
+          {LANES_FILTRO.map((item) => (
+            <option key={item} value={item}>
+              {item === "Todos" ? "Todas as lanes" : item}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="select-field"
+          value={statusFiltro}
+          onChange={(event) => {
+            setStatusFiltro(event.target.value);
+            setPagina(1);
+          }}
+        >
+          {STATUS_FILTRO.map((item) => (
+            <option key={item} value={item}>
+              {item === "Todos" ? "Todos os status" : item}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="select-field"
           value={ordem}
           onChange={(event) => {
             setOrdem(event.target.value);
@@ -332,15 +412,17 @@ function Champions() {
           }}
         >
           <option value="recentes">Mais recentes</option>
-          <option value="maior_maestria">Maior maestria</option>
-          <option value="menor_maestria">Menor maestria</option>
+          <option value="prioridade">Prioridade</option>
+          <option value="status">Status</option>
+          <option value="lane">Lane</option>
+          <option value="dificuldade">Maior dificuldade</option>
           <option value="nome_az">Nome A-Z</option>
           <option value="nome_za">Nome Z-A</option>
         </select>
       </div>
 
       {champions.length === 0 && (
-        <p className="empty-message">Nenhum campeão cadastrado ainda.</p>
+        <p className="empty-message">Nenhum campeão no seu pool ainda.</p>
       )}
 
       {champions.map((champion) => (
@@ -351,9 +433,15 @@ function Champions() {
           championsRiot={championsRiot}
           editandoId={editandoId}
           editNome={editNome}
-          editMaestria={editMaestria}
+          editLane={editLane}
+          editPrioridade={editPrioridade}
+          editStatus={editStatus}
+          editNotes={editNotes}
           setEditNome={setEditNome}
-          setEditMaestria={setEditMaestria}
+          setEditLane={setEditLane}
+          setEditPrioridade={setEditPrioridade}
+          setEditStatus={setEditStatus}
+          setEditNotes={setEditNotes}
           iniciarEdicao={iniciarEdicao}
           cancelarEdicao={cancelarEdicao}
           salvarEdicao={salvarEdicao}
@@ -388,13 +476,13 @@ function Champions() {
       {popupExcluir && championParaExcluir && (
         <div className="delete-modal-overlay">
           <div className="delete-modal">
-            <span className="delete-modal-kicker">Confirmar exclusão</span>
+            <span className="delete-modal-kicker">Confirmar remoção</span>
 
-            <h2>Excluir campeão?</h2>
+            <h2>Remover do pool?</h2>
 
             <p>
-              Você está prestes a excluir{" "}
-              <strong>{championParaExcluir.nome}</strong> da sua lista.
+              Você está prestes a remover{" "}
+              <strong>{championParaExcluir.nome}</strong> do seu pool.
             </p>
 
             <p className="delete-modal-warning">
@@ -415,7 +503,7 @@ function Champions() {
                 className="card-button danger"
                 onClick={excluirChampion}
               >
-                Excluir
+                Remover
               </button>
             </div>
           </div>

@@ -40,6 +40,7 @@ export async function listarChampionsRiot() {
     key: champion.key,
     nome: champion.name,
     titulo: champion.title,
+    dificuldade: champion.info?.difficulty || 0,
     imagem: `${DDRAGON_BASE_URL}/cdn/${versao}/img/champion/${champion.image.full}`,
   }));
 
@@ -47,7 +48,17 @@ export async function listarChampionsRiot() {
 
   return champions;
 }
+export function formatarDificuldadeChampion(valor) {
+  if (!valor || valor <= 3) {
+    return "Fácil";
+  }
 
+  if (valor <= 7) {
+    return "Médio";
+  }
+
+  return "Difícil";
+}
 export function encontrarChampionPorNome(nome, championsRiot) {
   return championsRiot.find(
     (champion) => champion.nome.toLowerCase() === nome.toLowerCase()
