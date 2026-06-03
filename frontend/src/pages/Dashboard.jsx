@@ -9,7 +9,9 @@ function Dashboard() {
   const { usuario, token } = useAuth();
 
   const [perfil, setPerfil] = useState(null);
-  const [champions, setChampions] = useState([]);
+  const [pool, setPool] = useState([]);
+  const [totalPool, setTotalPool] = useState(0);
+
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
 
@@ -19,13 +21,22 @@ function Dashboard() {
         setCarregando(true);
         setErro("");
 
-        const [perfilRiot, respostaChampions] = await Promise.all([
+        const [perfilRiot, respostaPool] = await Promise.all([
           buscarPerfilRiot(token),
-          listarChampions(token, "", "recentes", 1, 5),
+          listarChampions({
+            token,
+            nome: "",
+            lane: "Todos",
+            status: "Todos",
+            ordem: "recentes",
+            page: 1,
+            limit: 5,
+          }),
         ]);
 
         setPerfil(perfilRiot);
-        setChampions(respostaChampions.dados || []);
+        setPool(respostaPool.dados || []);
+        setTotalPool(respostaPool.total || 0);
       } catch (erro) {
         console.error("Erro ao carregar dashboard:", erro);
         setErro(erro.message || "Erro ao carregar dashboard.");
@@ -47,15 +58,16 @@ function Dashboard() {
     return <h1 className="error">{erro}</h1>;
   }
 
-  const totalChampions = champions.length;
-
-  const maiorMaestria = champions.reduce((maior, champion) => {
-    return champion.maestria > maior ? champion.maestria : maior;
-  }, 0);
-
-  const ultimoChampion = champions[0];
-
   const estaEmPartida = perfil?.liveStatus?.isInGame;
+
+  const totalMain = pool.filter((champion) => champion.prioridade === "Main")
+    .length;
+
+  const totalTreinando = pool.filter(
+    (champion) => champion.status === "Treinando"
+  ).length;
+
+  const ultimoChampion = pool[0];
 
   return (
     <main className="app-container">
@@ -67,8 +79,8 @@ function Dashboard() {
         </h1>
 
         <p>
-          Acompanhe seu perfil Riot, seus campeões cadastrados e o status da sua
-          conta em um só lugar.
+          Acompanhe seu perfil Riot, seu pool de campeões, status no LoL e
+          atalhos rápidos em um só lugar.
         </p>
       </section>
 
@@ -77,12 +89,12 @@ function Dashboard() {
           <span className="dashboard-card-label">Perfil Riot</span>
 
           <h2>
-            {perfil?.gameName}
-            <small>#{perfil?.tagLine}</small>
+            {perfil?.gameName || "Conta Riot"}
+            {perfil?.tagLine && <small>#{perfil.tagLine}</small>}
           </h2>
 
-          <p>Região: {perfil?.region?.toUpperCase()}</p>
-          <p>Nível: {perfil?.summonerLevel}</p>
+          <p>Região: {perfil?.region?.toUpperCase() || "Indefinida"}</p>
+          <p>Nível: {perfil?.summonerLevel || "Não encontrado"}</p>
 
           <Link className="dashboard-link-button" to="/perfil">
             Ver perfil
@@ -90,36 +102,39 @@ function Dashboard() {
         </article>
 
         <article className="dashboard-card">
-          <span className="dashboard-card-label">Champions</span>
+          <span className="dashboard-card-label">Meu Pool</span>
 
-          <h2>{totalChampions}</h2>
+          <h2>{totalPool}</h2>
 
-          <p>Campeões cadastrados nesta página.</p>
+          <p>Campeões adicionados ao seu pool pessoal.</p>
 
           {ultimoChampion ? (
-            <small>Último: {ultimoChampion.nome}</small>
+            <small>
+              Último: {ultimoChampion.nome} — {ultimoChampion.lane}
+            </small>
           ) : (
-            <small>Nenhum campeão cadastrado ainda.</small>
+            <small>Nenhum campeão no pool ainda.</small>
           )}
 
           <Link className="dashboard-link-button" to="/champions">
-            Ver champions
+            Ver pool
           </Link>
         </article>
 
         <article className="dashboard-card">
-          <span className="dashboard-card-label">Maior maestria</span>
+          <span className="dashboard-card-label">Prioridade</span>
 
-          <h2>
-            {maiorMaestria > 0
-              ? new Intl.NumberFormat("pt-BR").format(maiorMaestria)
-              : "0"}
-          </h2>
+          <h2>{totalMain}</h2>
 
-          <p>Maior valor entre os campeões cadastrados.</p>
+          <p>Campeões marcados como Main no seu pool.</p>
+
+          <small>
+            {totalTreinando} campeão{totalTreinando === 1 ? "" : "es"} em
+            treinamento.
+          </small>
 
           <Link className="dashboard-link-button" to="/champions">
-            Gerenciar
+            Gerenciar pool
           </Link>
         </article>
 
@@ -155,11 +170,15 @@ function Dashboard() {
 
         <div>
           <Link className="primary-button dashboard-action-link" to="/champions">
-            Ver Champions
+            Meu Pool
           </Link>
 
           <Link className="card-button dashboard-action-link" to="/perfil">
-            Ver Perfil Riot
+            Perfil Riot
+          </Link>
+
+          <Link className="card-button dashboard-action-link" to="/friends">
+            Amigos
           </Link>
         </div>
       </section>

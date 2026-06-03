@@ -1,6 +1,4 @@
-import {
-  formatarDificuldadeChampion,
-} from "../services/riotApi";
+import { formatarDificuldadeChampion } from "../services/riotApi";
 
 const LANES = ["Top", "Jungle", "Mid", "ADC", "Support"];
 
@@ -14,7 +12,6 @@ function ChampionForm({
   prioridade,
   status,
   notes,
-  setNome,
   setLane,
   setPrioridade,
   setStatus,
@@ -28,12 +25,21 @@ function ChampionForm({
 }) {
   return (
     <main className="app-container">
-      <button type="button" className="card-button back-button" onClick={onVoltar}>
+      <button
+        type="button"
+        className="card-button back-button"
+        onClick={onVoltar}
+      >
         Voltar
       </button>
 
       <section className="form-container">
         <h2>Adicionar ao Pool</h2>
+
+        <p className="input-help">
+          Escolha um campeão, defina a lane, prioridade e status no seu pool.
+          A dificuldade é preenchida automaticamente pelo Data Dragon da Riot.
+        </p>
 
         <form onSubmit={onSubmit}>
           <label className="field-label">Campeão</label>
@@ -88,6 +94,7 @@ function ChampionForm({
           )}
 
           <label className="field-label">Lane</label>
+
           <select
             className="select-field"
             value={lane}
@@ -101,6 +108,7 @@ function ChampionForm({
           </select>
 
           <label className="field-label">Prioridade</label>
+
           <select
             className="select-field"
             value={prioridade}
@@ -114,6 +122,7 @@ function ChampionForm({
           </select>
 
           <label className="field-label">Status</label>
+
           <select
             className="select-field"
             value={status}
@@ -127,6 +136,7 @@ function ChampionForm({
           </select>
 
           <label className="field-label">Notas</label>
+
           <textarea
             className="input-field notes-field"
             placeholder="Ex: treinar matchup contra Ahri, melhorar farm, testar build..."

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"projeto-go-react/database"
 	"projeto-go-react/handlers"
@@ -11,13 +12,13 @@ import (
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	handlers.EnableCors(w)
-	w.Write([]byte("API Go com SQLite funcionando!"))
+	w.Write([]byte("API Go com PostgreSQL funcionando!"))
 }
 
 func main() {
 	database.InitDatabase()
 	defer database.DB.Close()
-	
+
 	http.HandleFunc("/me/ping", handlers.AuthMiddleware(handlers.PingUserHandler))
 	http.HandleFunc("/users/search", handlers.AuthMiddleware(handlers.SearchUsersHandler))
 
@@ -34,14 +35,26 @@ func main() {
 	http.HandleFunc("/push/public-key", handlers.GetVapidPublicKeyHandler)
 	http.HandleFunc("/push/subscribe", handlers.AuthMiddleware(handlers.SavePushSubscriptionHandler))
 
-	http.HandleFunc("/", homeHandler)
 	http.HandleFunc("/champions", handlers.AuthMiddleware(handlers.ChampionsHandler))
-	http.HandleFunc("/champions/", handlers.AuthMiddleware(handlers.ChampionByIDHandler))
+
+	http.HandleFunc("/champions/", handlers.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/meta") {
+			handlers.ChampionMetaByIDHandler(w, r)
+			return
+		}
+
+		handlers.ChampionByIDHandler(w, r)
+	}))
+
+	http.HandleFunc("/meta/champion", handlers.AuthMiddleware(handlers.MetaChampionHandler))
 
 	http.HandleFunc("/auth/register", handlers.RegisterHandler)
 	http.HandleFunc("/auth/login", handlers.LoginHandler)
-	//http.HandleFunc("/riot/link", handlers.AuthMiddleware(handlers.RiotLinkHandler))
+	// http.HandleFunc("/riot/link", handlers.AuthMiddleware(handlers.RiotLinkHandler))
 	http.HandleFunc("/riot/profile", handlers.AuthMiddleware(handlers.RiotProfileHandler))
+
+	http.HandleFunc("/", homeHandler)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

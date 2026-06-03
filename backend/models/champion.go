@@ -11,9 +11,16 @@ type Champion struct {
 	Notes          string `json:"notes"`
 	RiotDifficulty int    `json:"riotDifficulty"`
 
-	IDUser         int    `json:"idUser,omitempty"`
-	CreatedAt      string `json:"createdAt,omitempty"`
-	UpdatedAt      string `json:"updatedAt,omitempty"`
+	MetaStatus       string  `json:"metaStatus"`
+	MetaRankPosition int     `json:"metaRankPosition"`
+	MetaWinRate      float64 `json:"metaWinRate"`
+	MetaPickRate     float64 `json:"metaPickRate"`
+	MetaBuildJSON    string  `json:"metaBuildJson"`
+	MetaUpdatedAt    string  `json:"metaUpdatedAt,omitempty"`
+
+	IDUser    int    `json:"idUser,omitempty"`
+	CreatedAt string `json:"createdAt,omitempty"`
+	UpdatedAt string `json:"updatedAt,omitempty"`
 }
 
 type ChampionResponse struct {

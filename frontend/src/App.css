@@ -3516,3 +3516,81 @@ button,
     font-size: 18px;
   }
 }
+/* =========================
+   META DO CAMPEÃO
+========================= */
+
+.meta-box {
+  margin: 12px 0 14px;
+  padding: 12px;
+  border: 1px solid rgba(200, 155, 60, 0.26);
+  border-radius: 12px;
+  background: rgba(5, 8, 15, 0.45);
+}
+
+.meta-box > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.meta-box strong {
+  color: var(--gold-light);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(160, 155, 140, 0.14);
+  border: 1px solid rgba(160, 155, 140, 0.32);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.meta-badge.strong {
+  background: rgba(10, 200, 185, 0.12);
+  border-color: rgba(10, 200, 185, 0.45);
+  color: var(--blue);
+}
+
+.meta-badge.ok {
+  background: rgba(200, 155, 60, 0.12);
+  border-color: rgba(200, 155, 60, 0.45);
+  color: var(--gold-light);
+}
+
+.meta-badge.weak {
+  background: rgba(196, 75, 75, 0.12);
+  border-color: rgba(196, 75, 75, 0.42);
+  color: #ff9b9b;
+}
+
+.meta-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.meta-stats small {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.meta-error {
+  display: block;
+  margin-bottom: 8px;
+  color: #ff9b9b;
+  font-size: 11px;
+}
