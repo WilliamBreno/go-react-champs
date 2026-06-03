@@ -63,7 +63,7 @@ func gerarMetaMockada(champion string, lane string) models.ChampionMetaResponse 
 	pickRate := 4.1
 	status := "Fraco"
 
-	if championLower == "yone" || championLower == "ahri" || championLower == "jinx" {
+	if championLower == "yone" || championLower == "ahri" || championLower == "jinx" || championLower == "gnar" {
 		rank = 2
 		winRate = 52.4
 		pickRate = 9.8

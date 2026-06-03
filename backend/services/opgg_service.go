@@ -6,7 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,14 +18,14 @@ import (
 
 const opggMCPEndpoint = "https://mcp-api.op.gg/mcp"
 
-type mcpRequest struct {
+type MCPRequest struct {
 	JSONRPC string      `json:"jsonrpc"`
 	ID      int         `json:"id"`
 	Method  string      `json:"method"`
 	Params  interface{} `json:"params,omitempty"`
 }
 
-type mcpToolCallParams struct {
+type MCPToolCallParams struct {
 	Name      string                 `json:"name"`
 	Arguments map[string]interface{} `json:"arguments"`
 }
@@ -35,7 +38,7 @@ func GetChampionMetaFromOPGG(champion string, lane string) (models.ChampionMetaR
 		return models.ChampionMetaResponse{}, errors.New("champion vazio")
 	}
 
-	meta, err := buscarMetaPorLane(champion, lane)
+	meta, err := buscarMetaPorLaneOPGG(champion, lane)
 	if err != nil {
 		return models.ChampionMetaResponse{}, err
 	}
@@ -43,33 +46,38 @@ func GetChampionMetaFromOPGG(champion string, lane string) (models.ChampionMetaR
 	return meta, nil
 }
 
-func buscarMetaPorLane(champion string, lane string) (models.ChampionMetaResponse, error) {
-	payload := mcpRequest{
+func buscarMetaPorLaneOPGG(champion string, lane string) (models.ChampionMetaResponse, error) {
+	payload := MCPRequest{
 		JSONRPC: "2.0",
 		ID:      1,
 		Method:  "tools/call",
-		Params: mcpToolCallParams{
+		Params: MCPToolCallParams{
 			Name: "lol_list_lane_meta_champions",
 			Arguments: map[string]interface{}{
 				"lane": lane,
 				"desired_output_fields": []string{
-					"champions[].name",
-					"champions[].rank",
-					"champions[].tier",
-					"champions[].win_rate",
-					"champions[].pick_rate",
-					"champions[].ban_rate",
+					"champions",
+					"name",
+					"rank",
+					"tier",
+					"win_rate",
+					"pick_rate",
+					"ban_rate",
 				},
 			},
 		},
 	}
 
-	raw, err := callOPGGMCP(payload)
+	raw, err := chamarOPGGMCP(payload)
 	if err != nil {
 		return models.ChampionMetaResponse{}, err
 	}
 
-	meta, err := extrairMetaDoTexto(raw, champion, lane)
+	texto := extrairTextoMCP(raw)
+
+	log.Println("[OPGG RAW]", texto)
+
+	meta, err := extrairMetaDoRetornoOPGG(texto, champion, lane)
 	if err != nil {
 		return models.ChampionMetaResponse{}, err
 	}
@@ -77,14 +85,14 @@ func buscarMetaPorLane(champion string, lane string) (models.ChampionMetaRespons
 	return meta, nil
 }
 
-func callOPGGMCP(payload interface{}) ([]byte, error) {
+func chamarOPGGMCP(payload interface{}) ([]byte, error) {
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
 
 	client := &http.Client{
-		Timeout: 18 * time.Second,
+		Timeout: 20 * time.Second,
 	}
 
 	req, err := http.NewRequest(http.MethodPost, opggMCPEndpoint, bytes.NewBuffer(body))
@@ -107,44 +115,167 @@ func callOPGGMCP(payload interface{}) ([]byte, error) {
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("OP.GG MCP retornou status %d: %s", resp.StatusCode, string(raw))
+		return nil, fmt.Errorf("OP.GG MCP status %d: %s", resp.StatusCode, string(raw))
 	}
 
 	return raw, nil
 }
 
-func extrairMetaDoTexto(raw []byte, champion string, lane string) (models.ChampionMetaResponse, error) {
+func extrairTextoMCP(raw []byte) string {
 	texto := string(raw)
 
+	var resposta map[string]interface{}
+	err := json.Unmarshal(raw, &resposta)
+	if err != nil {
+		return texto
+	}
+
+	result, ok := resposta["result"].(map[string]interface{})
+	if !ok {
+		return texto
+	}
+
+	content, ok := result["content"].([]interface{})
+	if !ok {
+		return texto
+	}
+
+	var partes []string
+
+	for _, item := range content {
+		itemMap, ok := item.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		if text, ok := itemMap["text"].(string); ok {
+			partes = append(partes, text)
+		}
+	}
+
+	if len(partes) == 0 {
+		return texto
+	}
+
+	return strings.Join(partes, "\n")
+}
+
+func extrairMetaDoRetornoOPGG(texto string, champion string, lane string) (models.ChampionMetaResponse, error) {
 	championLower := strings.ToLower(champion)
+	textoLower := strings.ToLower(texto)
 
-	if !strings.Contains(strings.ToLower(texto), championLower) {
-		return models.ChampionMetaResponse{}, fmt.Errorf("campeão %s não encontrado no retorno OP.GG", champion)
+	if !strings.Contains(textoLower, championLower) {
+		return models.ChampionMetaResponse{}, fmt.Errorf("campeão %s não encontrado no retorno do OP.GG", champion)
 	}
 
-	// Primeira versão segura:
-	// Como o retorno MCP pode vir em formatos diferentes, começamos detectando presença
-	// do campeão e calculando um status provisório até mapearmos o JSON exato.
-	// No próximo passo refinamos isso com o retorno real dos logs.
-	rank := 0
-	status := "Ok"
+	rank := extrairNumeroProximo(texto, champion, []string{"rank", "ranking", "position", "rank_position"})
+	winRate := extrairDecimalProximo(texto, champion, []string{"win_rate", "winrate", "win rate"})
+	pickRate := extrairDecimalProximo(texto, champion, []string{"pick_rate", "pickrate", "pick rate"})
 
-	if strings.Contains(strings.ToLower(texto), `"rank":1`) ||
-		strings.Contains(strings.ToLower(texto), `"rank":2`) ||
-		strings.Contains(strings.ToLower(texto), `"rank":3`) {
-		status = "Forte"
-		rank = 3
+	if rank <= 0 {
+		rank = 0
 	}
+
+	metaStatus := calcularMetaStatus(rank)
+
+	buildJSON := fmt.Sprintf(
+		`{"source":"opgg-mcp","raw_available":true,"champion":"%s","lane":"%s"}`,
+		escapeJSON(champion),
+		escapeJSON(lane),
+	)
 
 	return models.ChampionMetaResponse{
 		Champion:         champion,
 		Lane:             lane,
-		MetaStatus:       status,
+		MetaStatus:       metaStatus,
 		MetaRankPosition: rank,
-		MetaWinRate:      0,
-		MetaPickRate:     0,
-		MetaBuildJSON:    `{"source":"opgg-mcp","raw":true}`,
+		MetaWinRate:      winRate,
+		MetaPickRate:     pickRate,
+		MetaBuildJSON:    buildJSON,
 	}, nil
+}
+
+func extrairNumeroProximo(texto string, champion string, campos []string) int {
+	indiceChampion := strings.Index(strings.ToLower(texto), strings.ToLower(champion))
+	if indiceChampion < 0 {
+		return 0
+	}
+
+	inicio := indiceChampion - 600
+	if inicio < 0 {
+		inicio = 0
+	}
+
+	fim := indiceChampion + 1200
+	if fim > len(texto) {
+		fim = len(texto)
+	}
+
+	trecho := texto[inicio:fim]
+
+	for _, campo := range campos {
+		padrao := regexp.MustCompile(`(?i)` + regexp.QuoteMeta(campo) + `["'\s:_-]*([0-9]+)`)
+		match := padrao.FindStringSubmatch(trecho)
+
+		if len(match) >= 2 {
+			numero, err := strconv.Atoi(match[1])
+			if err == nil {
+				return numero
+			}
+		}
+	}
+
+	return 0
+}
+
+func extrairDecimalProximo(texto string, champion string, campos []string) float64 {
+	indiceChampion := strings.Index(strings.ToLower(texto), strings.ToLower(champion))
+	if indiceChampion < 0 {
+		return 0
+	}
+
+	inicio := indiceChampion - 600
+	if inicio < 0 {
+		inicio = 0
+	}
+
+	fim := indiceChampion + 1200
+	if fim > len(texto) {
+		fim = len(texto)
+	}
+
+	trecho := texto[inicio:fim]
+
+	for _, campo := range campos {
+		padrao := regexp.MustCompile(`(?i)` + regexp.QuoteMeta(campo) + `["'\s:_-]*([0-9]+(?:[.,][0-9]+)?)`)
+		match := padrao.FindStringSubmatch(trecho)
+
+		if len(match) >= 2 {
+			valor := strings.ReplaceAll(match[1], ",", ".")
+			numero, err := strconv.ParseFloat(valor, 64)
+			if err == nil {
+				return numero
+			}
+		}
+	}
+
+	return 0
+}
+
+func calcularMetaStatus(rank int) string {
+	if rank > 0 && rank <= 3 {
+		return "Forte"
+	}
+
+	if rank > 0 && rank <= 10 {
+		return "Ok"
+	}
+
+	if rank > 10 {
+		return "Fraco"
+	}
+
+	return "Não analisado"
 }
 
 func normalizarLaneOPGG(lane string) string {
@@ -162,4 +293,10 @@ func normalizarLaneOPGG(lane string) string {
 	default:
 		return "mid"
 	}
+}
+
+func escapeJSON(valor string) string {
+	valor = strings.ReplaceAll(valor, `\`, `\\`)
+	valor = strings.ReplaceAll(valor, `"`, `\"`)
+	return valor
 }
