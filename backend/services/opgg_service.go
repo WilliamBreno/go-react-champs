@@ -54,6 +54,8 @@ func buscarMetaPorLaneOPGG(champion string, lane string) (models.ChampionMetaRes
 		Params: MCPToolCallParams{
 			Name: "lol_list_lane_meta_champions",
 			Arguments: map[string]interface{}{
+				"region": "global",
+				"tier": "emerald_plus",
 				"lane": lane,
 				"desired_output_fields": []string{
 					"champions",
@@ -300,6 +302,7 @@ func escapeJSON(valor string) string {
 	valor = strings.ReplaceAll(valor, `"`, `\"`)
 	return valor
 }
+
 func DebugListOPGGTools() {
 	payload := MCPRequest{
 		JSONRPC: "2.0",
@@ -315,3 +318,5 @@ func DebugListOPGGTools() {
 
 	log.Println("[OPGG TOOLS RAW]", string(raw))
 }
+
+
