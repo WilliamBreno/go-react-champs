@@ -144,31 +144,50 @@ func extrairMetaLane(
 
 	log.Println("[META TEXT]", texto)
 
-	champion = strings.ToUpper(champion)
+	// O retorno do OP.GG vem no formato posicional:
+	// Mid("Ahri",rank,tier,win_rate,pick_rate,ban_rate)
+	// Ex: Mid("Ahri",1,1,0.51,0.1,0.04)
+	// Precisamos encontrar a linha do champion específico pelo nome.
 
-	reRank := regexp.MustCompile(`rank[^0-9]*([0-9]+)`)
-	reTier := regexp.MustCompile(`tier[^0-9]*([0-9]+)`)
-	reWin := regexp.MustCompile(`win_rate[^0-9]*([0-9.]+)`)
-	rePick := regexp.MustCompile(`pick_rate[^0-9]*([0-9.]+)`)
-	reBan := regexp.MustCompile(`ban_rate[^0-9]*([0-9.]+)`)
+	// Monta regex case-insensitive para o nome do champion
+	// Escapa caracteres especiais no nome (ex: Vel'Koz, Cho'Gath)
+	championEscapado := regexp.QuoteMeta(champion)
 
-	rankMatch := reRank.FindStringSubmatch(texto)
-	tierMatch := reTier.FindStringSubmatch(texto)
-	winMatch := reWin.FindStringSubmatch(texto)
-	pickMatch := rePick.FindStringSubmatch(texto)
-	banMatch := reBan.FindStringSubmatch(texto)
+	// Padrão: qualquer prefixo de lane + ("NomeChamp",rank,tier,win_rate,pick_rate,ban_rate)
+	padrao := fmt.Sprintf(
+		`(?i)[A-Za-z_]+\("%s",([0-9]+),([0-9]+),([0-9.]+),([0-9.]+),([0-9.]+)\)`,
+		championEscapado,
+	)
 
-	if len(rankMatch) < 2 {
-		return models.ChampionMetaResponse{},
-			fmt.Errorf("rank não encontrado")
+	re := regexp.MustCompile(padrao)
+	match := re.FindStringSubmatch(texto)
+
+	if len(match) < 6 {
+		// Fallback: tenta busca parcial (nome pode ter espaço vs underscore)
+		championNormalizado := strings.ReplaceAll(champion, "_", " ")
+		championEscapado2 := regexp.QuoteMeta(championNormalizado)
+		padrao2 := fmt.Sprintf(
+			`(?i)[A-Za-z_]+\("%s",([0-9]+),([0-9]+),([0-9.]+),([0-9.]+),([0-9.]+)\)`,
+			championEscapado2,
+		)
+		re2 := regexp.MustCompile(padrao2)
+		match = re2.FindStringSubmatch(texto)
 	}
 
-	rank, _ := strconv.Atoi(rankMatch[1])
-	tier, _ := strconv.Atoi(tierMatch[1])
+	if len(match) < 6 {
+		log.Printf("[META] Champion '%s' não encontrado no retorno. Texto: %s", champion, texto[:min(300, len(texto))])
+		return models.ChampionMetaResponse{},
+			fmt.Errorf("champion '%s' não encontrado nos dados da lane '%s'", champion, lane)
+	}
 
-	winRate, _ := strconv.ParseFloat(winMatch[1], 64)
-	pickRate, _ := strconv.ParseFloat(pickMatch[1], 64)
-	banRate, _ := strconv.ParseFloat(banMatch[1], 64)
+	rank, _ := strconv.Atoi(match[1])
+	tier, _ := strconv.Atoi(match[2])
+	winRate, _ := strconv.ParseFloat(match[3], 64)
+	pickRate, _ := strconv.ParseFloat(match[4], 64)
+	banRate, _ := strconv.ParseFloat(match[5], 64)
+
+	log.Printf("[META] %s na lane %s → rank=%d tier=%d win=%.2f%% pick=%.2f%% ban=%.2f%%",
+		champion, lane, rank, tier, winRate*100, pickRate*100, banRate*100)
 
 	return models.ChampionMetaResponse{
 		Champion:         champion,
@@ -180,6 +199,13 @@ func extrairMetaLane(
 		MetaPickRate:     pickRate * 100,
 		MetaBanRate:      banRate * 100,
 	}, nil
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 func buscarMetaPorLaneOPGG(
