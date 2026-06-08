@@ -41,7 +41,7 @@ func MetaChampionHandler(w http.ResponseWriter, r *http.Request) {
 	if lane == "" {
 		lane = "Mid"
 	}
-
+	services.DebugListOPGGTools()
 	meta, err := services.GetChampionMetaFromOPGG(champion, lane)
 	if err == nil {
 		json.NewEncoder(w).Encode(meta)

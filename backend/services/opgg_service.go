@@ -300,3 +300,18 @@ func escapeJSON(valor string) string {
 	valor = strings.ReplaceAll(valor, `"`, `\"`)
 	return valor
 }
+func DebugListOPGGTools() {
+	payload := MCPRequest{
+		JSONRPC: "2.0",
+		ID:      99,
+		Method:  "tools/list",
+	}
+
+	raw, err := chamarOPGGMCP(payload)
+	if err != nil {
+		log.Println("[OPGG TOOLS ERROR]", err)
+		return
+	}
+
+	log.Println("[OPGG TOOLS RAW]", string(raw))
+}
