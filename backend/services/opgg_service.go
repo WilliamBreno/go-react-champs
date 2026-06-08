@@ -45,26 +45,29 @@ func GetChampionMetaFromOPGG(champion string, lane string) (models.ChampionMetaR
 
 	return meta, nil
 }
-
+func ChampionToOPGG(champion string) string {
+	champion = strings.TrimSpace(champion)
+	champion = strings.ToUpper(champion)
+	champion = strings.ReplaceAll(champion, " ", "_")
+	return champion
+}
 func buscarMetaPorLaneOPGG(champion string, lane string) (models.ChampionMetaResponse, error) {
 	payload := MCPRequest{
 		JSONRPC: "2.0",
-		ID:      1,
-		Method:  "tools/call",
+		ID: 1,
+		Method: "tools/call",
 		Params: MCPToolCallParams{
-			Name: "lol_list_lane_meta_champions",
+			Name: "lol_get_champion_analysis",
 			Arguments: map[string]interface{}{
-				"region": "global",
-				"tier": "emerald_plus",
-				"lane": lane,
+				"game_mode": "ranked",
+				"champion": ChampionToOPGG(champion),
+				"position": lane,
 				"desired_output_fields": []string{
-					"champions",
-					"name",
-					"rank",
-					"tier",
-					"win_rate",
-					"pick_rate",
-					"ban_rate",
+					"data.summary.average_stats.win_rate",
+					"data.summary.average_stats.pick_rate",
+					"data.summary.average_stats.ban_rate",
+					"data.summary.average_stats.rank",
+					"data.summary.average_stats.tier",
 				},
 			},
 		},
