@@ -63,6 +63,7 @@ func buscarMetaPorLaneOPGG(champion string, lane string) (models.ChampionMetaRes
 				"champion": ChampionToOPGG(champion),
 				"position": lane,
 				"desired_output_fields": []string{
+					"champion",
 					"data.summary.average_stats.win_rate",
 					"data.summary.average_stats.pick_rate",
 					"data.summary.average_stats.ban_rate",
@@ -166,27 +167,58 @@ func extrairTextoMCP(raw []byte) string {
 }
 
 func extrairMetaDoRetornoOPGG(texto string, champion string, lane string) (models.ChampionMetaResponse, error) {
-	championLower := strings.ToLower(champion)
-	textoLower := strings.ToLower(texto)
 
-	if !strings.Contains(textoLower, championLower) {
-		return models.ChampionMetaResponse{}, fmt.Errorf("campeão %s não encontrado no retorno do OP.GG", champion)
+	re := regexp.MustCompile(
+		`AverageStats\(([0-9.]+),([0-9.]+),([0-9.]+),([0-9]+),([0-9]+)\)`,
+	)
+
+	match := re.FindStringSubmatch(texto)
+
+	if len(match) != 6 {
+		return models.ChampionMetaResponse{},
+			fmt.Errorf("não foi possível extrair AverageStats do retorno OP.GG: %s", texto)
 	}
 
-	rank := extrairNumeroProximo(texto, champion, []string{"rank", "ranking", "position", "rank_position"})
-	winRate := extrairDecimalProximo(texto, champion, []string{"win_rate", "winrate", "win rate"})
-	pickRate := extrairDecimalProximo(texto, champion, []string{"pick_rate", "pickrate", "pick rate"})
+	winRate, err := strconv.ParseFloat(match[1], 64)
+	if err != nil {
+		return models.ChampionMetaResponse{}, err
+	}
 
-	if rank <= 0 {
-		rank = 0
+	pickRate, err := strconv.ParseFloat(match[2], 64)
+	if err != nil {
+		return models.ChampionMetaResponse{}, err
+	}
+
+	banRate, err := strconv.ParseFloat(match[3], 64)
+	if err != nil {
+		return models.ChampionMetaResponse{}, err
+	}
+
+	rank, err := strconv.Atoi(match[4])
+	if err != nil {
+		return models.ChampionMetaResponse{}, err
+	}
+
+	tier, err := strconv.Atoi(match[5])
+	if err != nil {
+		return models.ChampionMetaResponse{}, err
 	}
 
 	metaStatus := calcularMetaStatus(rank)
 
 	buildJSON := fmt.Sprintf(
-		`{"source":"opgg-mcp","raw_available":true,"champion":"%s","lane":"%s"}`,
+		`{
+			"source":"opgg-mcp",
+			"raw_available":true,
+			"champion":"%s",
+			"lane":"%s",
+			"tier":%d,
+			"ban_rate":%f
+		}`,
 		escapeJSON(champion),
 		escapeJSON(lane),
+		tier,
+		banRate,
 	)
 
 	return models.ChampionMetaResponse{
@@ -200,72 +232,7 @@ func extrairMetaDoRetornoOPGG(texto string, champion string, lane string) (model
 	}, nil
 }
 
-func extrairNumeroProximo(texto string, champion string, campos []string) int {
-	indiceChampion := strings.Index(strings.ToLower(texto), strings.ToLower(champion))
-	if indiceChampion < 0 {
-		return 0
-	}
 
-	inicio := indiceChampion - 600
-	if inicio < 0 {
-		inicio = 0
-	}
-
-	fim := indiceChampion + 1200
-	if fim > len(texto) {
-		fim = len(texto)
-	}
-
-	trecho := texto[inicio:fim]
-
-	for _, campo := range campos {
-		padrao := regexp.MustCompile(`(?i)` + regexp.QuoteMeta(campo) + `["'\s:_-]*([0-9]+)`)
-		match := padrao.FindStringSubmatch(trecho)
-
-		if len(match) >= 2 {
-			numero, err := strconv.Atoi(match[1])
-			if err == nil {
-				return numero
-			}
-		}
-	}
-
-	return 0
-}
-
-func extrairDecimalProximo(texto string, champion string, campos []string) float64 {
-	indiceChampion := strings.Index(strings.ToLower(texto), strings.ToLower(champion))
-	if indiceChampion < 0 {
-		return 0
-	}
-
-	inicio := indiceChampion - 600
-	if inicio < 0 {
-		inicio = 0
-	}
-
-	fim := indiceChampion + 1200
-	if fim > len(texto) {
-		fim = len(texto)
-	}
-
-	trecho := texto[inicio:fim]
-
-	for _, campo := range campos {
-		padrao := regexp.MustCompile(`(?i)` + regexp.QuoteMeta(campo) + `["'\s:_-]*([0-9]+(?:[.,][0-9]+)?)`)
-		match := padrao.FindStringSubmatch(trecho)
-
-		if len(match) >= 2 {
-			valor := strings.ReplaceAll(match[1], ",", ".")
-			numero, err := strconv.ParseFloat(valor, 64)
-			if err == nil {
-				return numero
-			}
-		}
-	}
-
-	return 0
-}
 
 func calcularMetaStatus(rank int) string {
 	if rank > 0 && rank <= 3 {
