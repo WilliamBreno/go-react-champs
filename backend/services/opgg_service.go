@@ -166,70 +166,61 @@ func extrairTextoMCP(raw []byte) string {
 	return strings.Join(partes, "\n")
 }
 
-func extrairMetaDoRetornoOPGG(texto string, champion string, lane string) (models.ChampionMetaResponse, error) {
+func extrairMetaDoRetornoOPGG(
+    texto string,
+    champion string,
+    lane string,
+) (models.ChampionMetaResponse, error) {
 
-	re := regexp.MustCompile(
-		`AverageStats\(([0-9.]+),([0-9.]+),([0-9.]+),([0-9]+),([0-9]+)\)`,
-	)
+    re := regexp.MustCompile(
+        `AverageStats\(([0-9.]+),([0-9.]+),([0-9.]+),([0-9]+),([0-9]+)\)`,
+    )
 
-	match := re.FindStringSubmatch(texto)
+    m := re.FindStringSubmatch(texto)
 
-	if len(match) != 6 {
-		return models.ChampionMetaResponse{},
-			fmt.Errorf("não foi possível extrair AverageStats do retorno OP.GG: %s", texto)
-	}
+    if len(m) != 6 {
+        return models.ChampionMetaResponse{},
+            fmt.Errorf("AverageStats não encontrado")
+    }
 
-	winRate, err := strconv.ParseFloat(match[1], 64)
-	if err != nil {
-		return models.ChampionMetaResponse{}, err
-	}
+    winRate, _ := strconv.ParseFloat(m[1], 64)
+    pickRate, _ := strconv.ParseFloat(m[2], 64)
+    banRate, _ := strconv.ParseFloat(m[3], 64)
 
-	pickRate, err := strconv.ParseFloat(match[2], 64)
-	if err != nil {
-		return models.ChampionMetaResponse{}, err
-	}
+    rank, _ := strconv.Atoi(m[4])
+    tier, _ := strconv.Atoi(m[5])
 
-	banRate, err := strconv.ParseFloat(match[3], 64)
-	if err != nil {
-		return models.ChampionMetaResponse{}, err
-	}
+    // converter fração -> %
+    winRate *= 100
+    pickRate *= 100
+    banRate *= 100
 
-	rank, err := strconv.Atoi(match[4])
-	if err != nil {
-		return models.ChampionMetaResponse{}, err
-	}
+    metaStatus := calcularMetaStatus(rank)
 
-	tier, err := strconv.Atoi(match[5])
-	if err != nil {
-		return models.ChampionMetaResponse{}, err
-	}
+    buildJSON := fmt.Sprintf(
+        `{
+            "source":"opgg-mcp",
+            "champion":"%s",
+            "lane":"%s",
+            "tier":%d,
+            "ban_rate":%.2f
+        }`,
+        champion,
+        lane,
+        tier,
+        banRate,
+    )
 
-	metaStatus := calcularMetaStatus(rank)
+    return models.ChampionMetaResponse{
+        Champion: champion,
+        Lane: lane,
 
-	buildJSON := fmt.Sprintf(
-		`{
-			"source":"opgg-mcp",
-			"raw_available":true,
-			"champion":"%s",
-			"lane":"%s",
-			"tier":%d,
-			"ban_rate":%f
-		}`,
-		escapeJSON(champion),
-		escapeJSON(lane),
-		tier,
-		banRate,
-	)
-
-	return models.ChampionMetaResponse{
-		Champion:         champion,
-		Lane:             lane,
-		MetaStatus:       metaStatus,
-		MetaRankPosition: rank,
-		MetaWinRate:      winRate,
-		MetaPickRate:     pickRate,
-		MetaBuildJSON:    buildJSON,
-	}, nil
+        MetaStatus:       metaStatus,
+        MetaRankPosition: rank,
+        MetaWinRate:      winRate,
+        MetaPickRate:     pickRate,
+        MetaBuildJSON:    buildJSON,
+    }, nil
 }
 
 
