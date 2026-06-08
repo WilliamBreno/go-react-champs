@@ -8,6 +8,7 @@ import (
 
 	"projeto-go-react/database"
 	"projeto-go-react/handlers"
+	"projeto-go-react/services"
 )
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
@@ -17,6 +18,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	database.InitDatabase()
+	services.DebugListOPGGTools()
 	defer database.DB.Close()
 
 	http.HandleFunc("/me/ping", handlers.AuthMiddleware(handlers.PingUserHandler))
