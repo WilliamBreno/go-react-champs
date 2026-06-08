@@ -2,6 +2,7 @@ package services
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"projeto-go-react/database"
 	"projeto-go-react/models"
 )
 
@@ -45,23 +47,49 @@ func GetChampionMetaFromOPGG(champion string, lane string) (models.ChampionMetaR
 
 	return meta, nil
 }
+
 func ChampionToOPGG(champion string) string {
 	champion = strings.TrimSpace(champion)
 	champion = strings.ToUpper(champion)
 	champion = strings.ReplaceAll(champion, " ", "_")
 	return champion
 }
-func buscarMetaPorLaneOPGG(champion string, lane string) (models.ChampionMetaResponse, error) {
+
+// GetChampionMetaByUserID busca a lane do champion no DB pelo userID
+// e então consulta o OP.GG com os dados corretos.
+func GetChampionMetaByUserID(userID int, championName string) (models.ChampionMetaResponse, error) {
+	var lane string
+
+	query := `
+		SELECT COALESCE(lane, 'mid')
+		FROM champions
+		WHERE user_id = $1 AND LOWER(nome) = LOWER($2)
+		LIMIT 1
+	`
+
+	err := database.DB.QueryRow(query, userID, championName).Scan(&lane)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return models.ChampionMetaResponse{},
+				fmt.Errorf("champion '%s' não encontrado para o usuário %d", championName, userID)
+		}
+		return models.ChampionMetaResponse{}, fmt.Errorf("erro ao buscar lane no DB: %w", err)
+	}
+
+	return GetChampionMetaFromOPGG(championName, lane)
+}
+
+func buscarChampionAnalysisOPGG(champion string, lane string) (models.ChampionMetaResponse, error) {
 	payload := MCPRequest{
 		JSONRPC: "2.0",
-		ID: 1,
-		Method: "tools/call",
+		ID:      1,
+		Method:  "tools/call",
 		Params: MCPToolCallParams{
 			Name: "lol_get_champion_analysis",
 			Arguments: map[string]interface{}{
 				"game_mode": "ranked",
-				"champion": ChampionToOPGG(champion),
-				"position": lane,
+				"champion":  ChampionToOPGG(champion),
+				"position":  lane,
 				"desired_output_fields": []string{
 					"champion",
 					"data.summary.average_stats.win_rate",
@@ -89,6 +117,104 @@ func buscarMetaPorLaneOPGG(champion string, lane string) (models.ChampionMetaRes
 	}
 
 	return meta, nil
+}
+
+func calcularMetaStatusPorTier(tier int) string {
+	switch tier {
+	case 1:
+		return "Forte"
+	case 2:
+		return "Bom"
+	case 3:
+		return "Ok"
+	case 4:
+		return "Fraco"
+	default:
+		return "Fraco"
+	}
+}
+
+func extrairMetaLane(
+	raw []byte,
+	champion string,
+	lane string,
+) (models.ChampionMetaResponse, error) {
+
+	texto := extrairTextoMCP(raw)
+
+	log.Println("[META TEXT]", texto)
+
+	champion = strings.ToUpper(champion)
+
+	reRank := regexp.MustCompile(`rank[^0-9]*([0-9]+)`)
+	reTier := regexp.MustCompile(`tier[^0-9]*([0-9]+)`)
+	reWin := regexp.MustCompile(`win_rate[^0-9]*([0-9.]+)`)
+	rePick := regexp.MustCompile(`pick_rate[^0-9]*([0-9.]+)`)
+	reBan := regexp.MustCompile(`ban_rate[^0-9]*([0-9.]+)`)
+
+	rankMatch := reRank.FindStringSubmatch(texto)
+	tierMatch := reTier.FindStringSubmatch(texto)
+	winMatch := reWin.FindStringSubmatch(texto)
+	pickMatch := rePick.FindStringSubmatch(texto)
+	banMatch := reBan.FindStringSubmatch(texto)
+
+	if len(rankMatch) < 2 {
+		return models.ChampionMetaResponse{},
+			fmt.Errorf("rank não encontrado")
+	}
+
+	rank, _ := strconv.Atoi(rankMatch[1])
+	tier, _ := strconv.Atoi(tierMatch[1])
+
+	winRate, _ := strconv.ParseFloat(winMatch[1], 64)
+	pickRate, _ := strconv.ParseFloat(pickMatch[1], 64)
+	banRate, _ := strconv.ParseFloat(banMatch[1], 64)
+
+	return models.ChampionMetaResponse{
+		Champion:         champion,
+		Lane:             lane,
+		MetaRankPosition: rank,
+		MetaTier:         tier,
+		MetaStatus:       calcularMetaStatusPorTier(tier),
+		MetaWinRate:      winRate * 100,
+		MetaPickRate:     pickRate * 100,
+		MetaBanRate:      banRate * 100,
+	}, nil
+}
+
+func buscarMetaPorLaneOPGG(
+	champion string,
+	lane string,
+) (models.ChampionMetaResponse, error) {
+
+	payload := MCPRequest{
+		JSONRPC: "2.0",
+		ID:      1,
+		Method:  "tools/call",
+		Params: MCPToolCallParams{
+			Name: "lol_list_lane_meta_champions",
+			Arguments: map[string]interface{}{
+				"position": lane,
+				"desired_output_fields": []string{
+					fmt.Sprintf("data.positions.%s[].champion", lane),
+					fmt.Sprintf("data.positions.%s[].rank", lane),
+					fmt.Sprintf("data.positions.%s[].tier", lane),
+					fmt.Sprintf("data.positions.%s[].win_rate", lane),
+					fmt.Sprintf("data.positions.%s[].pick_rate", lane),
+					fmt.Sprintf("data.positions.%s[].ban_rate", lane),
+				},
+			},
+		},
+	}
+
+	raw, err := chamarOPGGMCP(payload)
+	if err != nil {
+		return models.ChampionMetaResponse{}, err
+	}
+
+	log.Println("[OPGG META RAW]", string(raw))
+
+	return extrairMetaLane(raw, champion, lane)
 }
 
 func chamarOPGGMCP(payload interface{}) ([]byte, error) {
@@ -225,7 +351,6 @@ func extrairMetaDoRetornoOPGG(
 	}, nil
 }
 
-
 func calcularMetaStatus(rank int) string {
 	if rank > 0 && rank <= 3 {
 		return "Forte"
@@ -280,5 +405,3 @@ func DebugListOPGGTools() {
 
 	log.Println("[OPGG TOOLS RAW]", string(raw))
 }
-
-

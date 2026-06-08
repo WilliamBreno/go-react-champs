@@ -21,3 +21,13 @@ type SaveChampionMetaRequest struct {
 	MetaBanRate      float64 `json:"metaBanRate"`
 	MetaBuildJSON    string  `json:"metaBuildJson"`
 }
+type ChampionStats struct {
+    WinRate  float64
+    PickRate float64
+    BanRate  float64
+}
+
+type ChampionLaneMeta struct {
+    Rank int
+    Tier int
+}
